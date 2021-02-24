@@ -17,5 +17,6 @@
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
     "python.venvPath": "${workspaceFolder}/envs",
+    "python.terminal.activateEnvironment": false,
     "files.insertFinalNewline": true
 }
