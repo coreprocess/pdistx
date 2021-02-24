@@ -2,6 +2,8 @@
 
 ## Open VSC environment
 
+**Note:** The `vscode` script works with the non-portable version of VSC only. And VSC needs to be in the path.
+
 ```sh
 ./vscode .
 ```
