@@ -5,17 +5,17 @@
         },
         "**/__pycache__": true
     },
-    "editor.rulers": [
-        80,
-        120
-    ],
+    "editor.rulers": [80, 120],
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[python]": {
+        "editor.defaultFormatter": null
+    },
     "python.formatting.provider": "yapf",
-    "python.formatting.yapfArgs": [
-        "--style",
-        "{based_on_style: google}"
-    ],
+    "python.formatting.yapfArgs": ["--style", "{based_on_style: google}"],
     "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "python.venvPath": "${workspaceFolder}/envs",
+    "files.insertFinalNewline": true
 }
