@@ -7,8 +7,8 @@ setup(
     version=pyscriptpacker.__version__,
     author=pyscriptpacker.__author__,
     license=pyscriptpacker.__license__,
-    description='Convert Python packages into a single file.',
-    url='https://github.com/3dninjas/pyscriptpacker2',
+    description=pyscriptpacker.__doc__.strip(),
+    url=pyscriptpacker.__contact__,
     packages=find_packages(),
     install_requires=[],
 )
