@@ -31,15 +31,14 @@ def parse_input(options, args):
             'Error: pyscriptpacker not support python version '
             'lower than 2.7. Please see --help for more information.')
         sys.exit(1)
+    if re.search(r'[^\w]', product_name):
+        sys.stdout.write('Error: Invalid product name. '
+                         'Please see --help for more information.')
+        sys.exit(1)
     if re.search(r'[^\w]', module_name):
         sys.stdout.write('Error: Invalid module name. '
                          'Please see --help for more information.')
         sys.exit(1)
-    for path in lib_paths:
-        if re.search(r'[^\w]', path):
-            sys.stdout.write('Error: Invalid library path. '
-                             'Please see --help for more information.')
-            sys.exit(1)
 
     packer.pack(py_version, output_path, product_name, module_name, lib_paths)
 
