@@ -1,6 +1,25 @@
 import os
+import sys
 
-from pyscriptpacker.utils import write_output
+from pyscriptpacker import utils
+
+
+def write_output(output_path, texts):
+    try:
+        with open(output_path, 'w') as output:
+            # TODO(Nghia Lam): Something wrong with new line characters '\n',
+            # it cannot write a new line ...
+            output.write(texts)
+    except IOError as e:
+        sys.stdout.write('Error: Cannot write to ' + output_path +
+                         '\nPlease make sure the directory is valid!!\n' +
+                         str(e))
+        sys.exit(1)
+
+
+def get_setup_module_code(python_version):
+    return (utils.py2_setup_code
+            if python_version == '2.7' else utils.py3_setup_code)
 
 
 def find_all_module_paths(library_paths):
@@ -54,11 +73,14 @@ def pack_modules(product_name, library_paths):
 
 
 def pack(python_version, output_path, product_name, library_paths):
-    main_script = ''
+    main_script = 'import sys\n'
 
     # Add modules to main_script
     modules = pack_modules(product_name, library_paths)
-    main_script = ('_modules = [' +
-                   ','.join([str(module) for module in modules]) + ']')
+    main_script += ('_modules = [' +
+                    ','.join([str(module) for module in modules]) + ']')
+
+    # Setup module code
+    main_script += get_setup_module_code(python_version)
 
     write_output(output_path, main_script)
