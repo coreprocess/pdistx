@@ -15,7 +15,7 @@ def parse_input(options, args):
         args (list): A list of input arguments.
     """
 
-    if len(args) < 4:  # TODO(Nghia Lam): Find more dynamic approach
+    if len(args) < 3:  # TODO(Nghia Lam): Find more dynamic approach
         sys.stdout.write('Error: You must input all the required arguments. '
                          'Please see --help for more information.')
         sys.exit(1)
@@ -23,8 +23,7 @@ def parse_input(options, args):
     py_version = options.python_version
     output_path = args[0]
     product_name = args[1]
-    module_name = args[2]
-    lib_paths = args[3:]
+    lib_paths = args[2:]
 
     if py_version < '2.7':
         sys.stdout.write(
@@ -35,12 +34,8 @@ def parse_input(options, args):
         sys.stdout.write('Error: Invalid product name. '
                          'Please see --help for more information.')
         sys.exit(1)
-    if re.search(r'[^\w]', module_name):
-        sys.stdout.write('Error: Invalid module name. '
-                         'Please see --help for more information.')
-        sys.exit(1)
 
-    packer.pack(py_version, output_path, product_name, module_name, lib_paths)
+    packer.pack(py_version, output_path, product_name, lib_paths)
 
 
 def main():
@@ -48,11 +43,10 @@ def main():
     Sets up our command line options, prints the usage/help (if warranted).
     """
     usage = ('%prog [options] ' +
-             '<output-path> <product-name> <module-name> <library-path> [...]')
+             '<output-path> <product-name> <library-path> [...]')
     if '__main__.py' in sys.argv[0]:  # python -m pyscriptpacker
-        usage = (
-            'pyscriptpacker [options] ' +
-            '<output-path> <product-name> <module-name> <library-path> [...]')
+        usage = ('pyscriptpacker [options] ' +
+                 '<output-path> <product-name> <library-path> [...]')
     parser = OptionParser(usage=usage, version=__version__)
     parser.disable_interspersed_args()
     parser.add_option(
