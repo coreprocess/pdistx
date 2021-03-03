@@ -1,5 +1,7 @@
 import os
 
+from pyscriptpacker.utils import write_output
+
 
 def find_all_module_paths(library_paths):
     all_module_paths = []
@@ -44,7 +46,7 @@ def pack_modules(product_name, library_paths):
                         if file == '__init__.py' else
                         ('.'.join([product_name, folder_name, file_name]))),
                     'is_package': file == '__init__.py',
-                    'code': file_text,
+                    'code': str(file_text),
                 }
                 modules.append(module_item)
 
@@ -52,9 +54,11 @@ def pack_modules(product_name, library_paths):
 
 
 def pack(python_version, output_path, product_name, library_paths):
-    # TODO(Nghia Lam): Support generate unique product name -> Confirm with
-    # Niklas
-    modules = pack_modules(product_name, library_paths)
+    main_script = ''
 
-    for module in modules:
-        print(module)
+    # Add modules to main_script
+    modules = pack_modules(product_name, library_paths)
+    main_script = ('_modules = [' +
+                   ','.join([str(module) for module in modules]) + ']')
+
+    write_output(output_path, main_script)
