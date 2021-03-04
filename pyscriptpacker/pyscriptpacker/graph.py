@@ -32,12 +32,16 @@ class ImportFinder(ast.NodeVisitor):
     """
 
     def __init__(self, file_name, file_path):
-        self.imports = []
-        self.file_name = file_name
+        self._imports = []
+        self._file_name = file_name
 
         with open(os.path.join(file_path, file_name)) as f:
             root = ast.parse(f.read(), file_name)
         self.visit(root)
+
+    @property
+    def list_imports(self):
+        return self._imports
 
     def visit_Import(self, node):
         for alias in node.names:
@@ -50,8 +54,8 @@ class ImportFinder(ast.NodeVisitor):
             self._process(fullname, node.level)
 
     def _process(self, full_name, level):
-        info = ImportInfo(full_name, self.file_name, level)
-        self.imports.append(info)
+        info = ImportInfo(full_name, self._file_name, level)
+        self._imports.append(info)
 
 
 class Module(object):
@@ -64,24 +68,30 @@ class Module(object):
         self.file_name = file_name
         self.is_package = False
         self.content = ''
-        self.imports = []
+        self.imports = set()
 
     def to_dict(self):
         data = {
-            'name': self.module_name,
-            'is_package': self.is_package,
-            'code': self.content,
+            'name':
+                '.'.join([self.module_name,
+                          self.file_name.split('.py')[0]])
+                if self.file_name != '__init__.py' else self.module_name,
+            'is_package':
+                self.is_package,
+            'code':
+                self.content,
         }
         return data
 
     def __repr__(self):
         # Used for debugging (print to console)
-        return '<%s: %s>:\nFile: %r\nPackage: %r\nCode: %r\n' % (
+        return '<%s: %s>:\nFile: %r\nPackage: %r\nCode: %r\nImport: %r\n' % (
             self.__class__.__name__,
             self.module_name,
             self.file_name,
             self.is_package,
             self.content,
+            self.imports,
         )
 
 
@@ -91,22 +101,25 @@ class ModuleGraph(object):
     if necessary.
     """
 
-    BUILTIN_MODULES = sys.builtin_module_names
-
     def __init__(self):
         self.modules = {}
+        self._module_cache = {}
+        self._paths = list(sys.path)
 
-    def parse_path(self, path):
-        if not os.path.exists(path):
-            return
+    def parse_paths(self, paths):
+        for path in paths:
+            if not os.path.exists(path):
+                return
 
-        for root, _, files in os.walk(path):
-            for file in files:
-                # TODO(Nghia Lam): exclude `setup.py` because some structure
-                # does put the `setup.py` outside of the module folder, not
-                # inside it. Do we have a better way to solve this?
-                if file.endswith('.py') and file != 'setup.py':
-                    self.parse_file(file, root)
+            for root, _, files in os.walk(path):
+                self._paths.append(root)
+
+                for file in files:
+                    # TODO(Nghia Lam): exclude `setup.py` because some structure
+                    # does put the `setup.py` outside of the module folder, not
+                    # inside it. Do we have a better way to solve this?
+                    if file.endswith('.py') and file != 'setup.py':
+                        self.parse_file(file, root)
 
     def parse_file(self, file_name, file_path):
         # NOTE(Nghia Lam): We did make sure the default file_path contain at
@@ -115,10 +128,16 @@ class ModuleGraph(object):
         # to avoid name clashes.
         module_name = self._find_module_name(file_path)
         module = Module(module_name, file_name)
-        module.imports = ImportFinder(file_name, file_path).imports
         module.is_package = (file_name == '__init__.py')
+        # Read code content
         with open(os.path.join(file_path, file_name), 'r') as file_data:
             module.content = file_data.read()
+        # Get import dependencies
+        import_infos = ImportFinder(file_name, file_path).list_imports
+        module.imports = {
+            self._find_module_of_import(imp.name, imp.level, file_name,
+                                        file_path) for imp in import_infos
+        }
 
         self.modules[module_name] = module
 
@@ -138,3 +157,57 @@ class ModuleGraph(object):
         module_name = '.'.join(module_name)
 
         return module_name
+
+    def _find_module_of_import(self, imp_name, imp_level, file_name, file_path):
+        """Given a fully qualified name, find what module contains it."""
+        if imp_name in sys.modules or imp_name in sys.builtin_module_names:
+            return None
+        if imp_name.endswith('.*'):
+            return imp_name[:-2]
+
+        name = imp_name
+
+        extrapath = None
+        if imp_level and imp_level > 1:
+            # NOTE(Nghia Lam): Find the trailling path if the level is > 1 for
+            # relative import.
+            # from .. import something
+            # --> The path must go up one
+            # from ... import something
+            # --> The path must go up two
+            extrapath = file_path.split(os.path.sep)
+            imp_level -= 1
+            extrapath = extrapath[0:-imp_level]
+            extrapath = os.path.sep.join(extrapath)
+
+        if (imp_name, extrapath) in self._module_cache:
+            return self._module_cache[(imp_name, extrapath)]
+
+        while name:
+            imp_filename = ''
+            if file_name == '__init__.py':
+                imp_filename = os.path.sep.join(
+                    [name.replace('.', os.path.sep), '__init__.py'])
+            else:
+                imp_filename = name.replace('.', os.path.sep) + '.py'
+
+            if extrapath:
+                full_path = os.path.join(extrapath, imp_filename)
+                if os.path.exists(full_path):
+                    module_name = self._find_module_name(
+                        os.path.dirname(full_path))
+                    self._module_cache[(imp_name, extrapath)] = module_name
+                    return module_name
+
+            for path in self._paths:
+                if not os.path.isfile(path):
+                    full_path = os.path.join(path, imp_filename)
+                    if os.path.exists(full_path):
+                        module_name = self._find_module_name(
+                            os.path.dirname(full_path))
+                        self._module_cache[(imp_name, extrapath)] = module_name
+                        return module_name
+
+            name = name.rpartition('.')[0]
+
+        return imp_name
