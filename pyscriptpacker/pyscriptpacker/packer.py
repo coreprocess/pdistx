@@ -7,8 +7,6 @@ from pyscriptpacker import graph
 def write_output(output_path, texts):
     try:
         with open(output_path, 'w') as output:
-            # TODO(Nghia Lam): Something wrong with new line characters '\n',
-            # it cannot write a new line ...
             output.write(texts)
     except IOError as e:
         sys.stdout.write('Error: Cannot write to ' + output_path +
@@ -22,8 +20,8 @@ def get_setup_module_code(python_version):
             if python_version == '2.7' else utils.py3_setup_code)
 
 
-def pack(python_version, output_path, product_name, library_paths):
-    main_script = 'import sys\n'
+def pack(python_version, output_path, library_paths):
+    main_script = 'import sys\n\n'
 
     module_graph = graph.ModuleGraph()
     module_graph.parse_paths(library_paths)
