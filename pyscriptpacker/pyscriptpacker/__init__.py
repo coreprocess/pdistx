@@ -11,7 +11,7 @@ __status__ = 'In active development'
 # TODO(Nghia Lam):
 #   - [X] Loop through all the file codes in each modules.
 #   - [X] Detect import dependencies.
-#   - [ ] Sort import order based on the dependencies graph (using toposort).
+#   - [X] Sort import order based on the dependencies graph (using toposort).
 #   - [X] Scope root python name to avoid name clash.
 #   - [ ] Documentation.
 #   - [ ] IMPORTANT: Code quality review.

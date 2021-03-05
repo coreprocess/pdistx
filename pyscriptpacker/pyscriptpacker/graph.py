@@ -71,14 +71,9 @@ class Module(object):
 
     def to_dict(self):
         data = {
-            'name':
-                '.'.join([self.module_name,
-                          self.file_name.split('.py')[0]])
-                if self.file_name != '__init__.py' else self.module_name,
-            'is_package':
-                self.is_package,
-            'code':
-                self.content,
+            'name': self.module_name,
+            'is_package': self.is_package,
+            'code': self.content,
         }
         return data
 

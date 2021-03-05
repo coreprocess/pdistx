@@ -1,4 +1,3 @@
-import os
 import sys
 
 from pyscriptpacker import utils
@@ -29,4 +28,9 @@ def pack(python_version, output_path, product_name, library_paths):
     module_graph = graph.ModuleGraph()
     module_graph.parse_paths(library_paths)
 
-    print(module_graph.build_dependency_data())
+    main_script += '_modules = ' + str(module_graph.generate_data())
+    main_script += '\n'
+
+    main_script += get_setup_module_code(python_version)
+
+    write_output(output_path, main_script)
