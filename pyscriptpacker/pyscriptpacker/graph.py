@@ -101,9 +101,18 @@ class ModuleGraph(object):
     """
 
     def __init__(self):
-        self.modules = {}
+        self._modules = {}
         self._module_cache = {}
         self._paths = list(sys.path)
+
+    def generate_data(self):
+        data = []
+
+        list_dependencies = self._build_dependency_data()
+        for module in list_dependencies:
+            data.append(self._modules[module].to_dict())
+
+        return data
 
     def parse_paths(self, paths):
         for path in paths:
@@ -125,7 +134,7 @@ class ModuleGraph(object):
         # least one python file, it means that the main folder in file_path is
         # a module. But we need to make get all the parent scope of the module
         # to avoid name clashes.
-        module_name = self._find_module_name(file_path)
+        module_name = self._find_module_name(file_name, file_path)
         module = Module(module_name, file_name)
         module.is_package = (file_name == '__init__.py')
         # Read code content
@@ -134,19 +143,16 @@ class ModuleGraph(object):
         # Get import dependencies
         import_infos = ImportFinder(file_name, file_path).list_imports
         module.imports = {
-            self._find_module_of_import(imp.name, imp.level, file_name,
-                                        file_path) for imp in import_infos
+            self._find_module_of_import(imp.name, imp.level, file_path)
+            for imp in import_infos
         }
         # NOTE(Nghia Lam): Remove standard python libraries (which has returned
         # None when finding module.)
         module.imports = {imp for imp in module.imports if imp is not None}
 
-        key_name = ('.'.join([module_name,
-                              file_name.split('.py')[0]])
-                    if file_name != '__init__.py' else module_name)
-        self.modules[key_name] = module
+        self._modules[module_name] = module
 
-    def _find_module_name(self, file_path):
+    def _find_module_name(self, file_name, file_path):
         module_name = []
 
         elements = file_path.split(os.path.sep)
@@ -161,9 +167,17 @@ class ModuleGraph(object):
         module_name.reverse()
         module_name = '.'.join(module_name)
 
+        # Add file name to module name for scope management
+        if '__init__.py' not in file_name:
+            file_name = file_name.split('.py')[0]
+            # Remove trailing namespace
+            if os.path.sep in file_name:
+                file_name = file_name.split(os.path.sep)[-1]
+            module_name += '.' + file_name
+
         return module_name
 
-    def _find_module_of_import(self, imp_name, imp_level, file_name, file_path):
+    def _find_module_of_import(self, imp_name, imp_level, file_path):
         """Given a fully qualified name, find what module contains it."""
         if imp_name in sys.modules or imp_name in sys.builtin_module_names:
             return None
@@ -189,38 +203,45 @@ class ModuleGraph(object):
             return self._module_cache[(imp_name, extrapath)]
 
         while name:
-            imp_filename = ''
-            if file_name == '__init__.py':
-                imp_filename = os.path.sep.join(
-                    [name.replace('.', os.path.sep), '__init__.py'])
-            else:
-                imp_filename = name.replace('.', os.path.sep) + '.py'
-
-            if extrapath:
-                full_path = os.path.join(extrapath, imp_filename)
-                if os.path.exists(full_path):
-                    module_name = self._find_module_name(
-                        os.path.dirname(full_path))
-                    self._module_cache[(imp_name, extrapath)] = module_name
-                    return module_name
-
-            for path in self._paths:
-                if not os.path.isfile(path):
-                    full_path = os.path.join(path, imp_filename)
-                    if os.path.exists(full_path):
-                        module_name = self._find_module_name(
-                            os.path.dirname(full_path))
-                        self._module_cache[(imp_name, extrapath)] = module_name
-                        return module_name
+            result = self._get_name_via_module(name, extrapath)
+            if result:
+                return result
+            result = self._get_name_via_package(name, extrapath)
+            if result:
+                return result
 
             name = name.rpartition('.')[0]
 
         return imp_name
 
-    def build_dependency_data(self):
-        data = {}
-        for key in self.modules:
-            data[key] = self.modules[key].imports
+    def _get_name_via_module(self, imp_name, extrapath=None):
+        imp_filename = imp_name.replace('.', os.path.sep) + '.py'
 
-        print(data)
+        if extrapath:
+            full_path = os.path.join(extrapath, imp_filename)
+            if os.path.exists(full_path):
+                module_name = self._find_module_name(imp_filename,
+                                                     os.path.dirname(full_path))
+                self._module_cache[(imp_name, extrapath)] = module_name
+                return module_name
+
+        for path in self._paths:
+            if not os.path.isfile(path):
+                full_path = os.path.join(path, imp_filename)
+                if os.path.exists(full_path):
+                    module_name = self._find_module_name(
+                        imp_filename, os.path.dirname(full_path))
+                    self._module_cache[(imp_name, extrapath)] = module_name
+                    return module_name
+
+        return None
+
+    def _get_name_via_package(self, imp_name, extrapath=None):
+        return self._get_name_via_module(imp_name + '.__init__', extrapath)
+
+    def _build_dependency_data(self):
+        data = {}
+        for key in self._modules:
+            data[key] = self._modules[key].imports
+
         return toposort_flatten(data)
