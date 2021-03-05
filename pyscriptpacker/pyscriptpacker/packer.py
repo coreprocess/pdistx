@@ -28,4 +28,5 @@ def pack(python_version, output_path, product_name, library_paths):
 
     module_graph = graph.ModuleGraph()
     module_graph.parse_paths(library_paths)
-    print(module_graph.modules)
+
+    print(module_graph.build_dependency_data())

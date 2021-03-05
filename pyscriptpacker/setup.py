@@ -10,5 +10,5 @@ setup(
     description=pyscriptpacker.__doc__.strip(),
     url=pyscriptpacker.__contact__,
     packages=find_packages(),
-    install_requires=[],
+    install_requires=['toposort == 1.6'],
 )

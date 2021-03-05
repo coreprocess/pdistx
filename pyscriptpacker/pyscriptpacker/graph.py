@@ -2,23 +2,23 @@ import os
 import sys
 import ast
 
+from toposort import toposort_flatten
+
 
 class ImportInfo(object):
     """
     A record of a name and the location of the import statement.
     """
 
-    def __init__(self, name, filename, level):
+    def __init__(self, name, level):
         self.name = name
-        self.filename = filename
         self.level = level
 
     def __repr__(self):
         # Used for debugging (print to console)
-        return '%s(%r, %r, %r)' % (
+        return '%s(%r, %r)' % (
             self.__class__.__name__,
             self.name,
-            self.filename,
             self.level,
         )
 
@@ -33,7 +33,6 @@ class ImportFinder(ast.NodeVisitor):
 
     def __init__(self, file_name, file_path):
         self._imports = []
-        self._file_name = file_name
 
         with open(os.path.join(file_path, file_name)) as f:
             root = ast.parse(f.read(), file_name)
@@ -54,7 +53,7 @@ class ImportFinder(ast.NodeVisitor):
             self._process(fullname, node.level)
 
     def _process(self, full_name, level):
-        info = ImportInfo(full_name, self._file_name, level)
+        info = ImportInfo(full_name, level)
         self._imports.append(info)
 
 
@@ -138,8 +137,14 @@ class ModuleGraph(object):
             self._find_module_of_import(imp.name, imp.level, file_name,
                                         file_path) for imp in import_infos
         }
+        # NOTE(Nghia Lam): Remove standard python libraries (which has returned
+        # None when finding module.)
+        module.imports = {imp for imp in module.imports if imp is not None}
 
-        self.modules[module_name] = module
+        key_name = ('.'.join([module_name,
+                              file_name.split('.py')[0]])
+                    if file_name != '__init__.py' else module_name)
+        self.modules[key_name] = module
 
     def _find_module_name(self, file_path):
         module_name = []
@@ -211,3 +216,11 @@ class ModuleGraph(object):
             name = name.rpartition('.')[0]
 
         return imp_name
+
+    def build_dependency_data(self):
+        data = {}
+        for key in self.modules:
+            data[key] = self.modules[key].imports
+
+        print(data)
+        return toposort_flatten(data)
