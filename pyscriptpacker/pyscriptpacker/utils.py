@@ -37,3 +37,7 @@ for module in _modules:
 for module in _modules:
     exec(module['code'], sys.modules[module['name']].__dict__)
 '''
+
+
+def find_word_at(string, index):
+    return string[:index].split(' ')[-1] + string[index:].split(' ')[0]

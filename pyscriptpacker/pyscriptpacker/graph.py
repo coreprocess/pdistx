@@ -4,6 +4,8 @@ import ast
 
 from toposort import toposort_flatten
 
+from . import utils
+
 
 class ImportInfo(object):
     """
@@ -98,6 +100,7 @@ class ModuleGraph(object):
     def __init__(self):
         self._modules = {}
         self._module_cache = {}
+        self._relative_cache = {}
         self._paths = list(sys.path)
 
     def generate_data(self):
@@ -133,20 +136,58 @@ class ModuleGraph(object):
         module_name = self._find_module_name(file_name, file_path)
         module = Module(module_name, file_name)
         module.is_package = (file_name == '__init__.py')
-        # Read code content
-        with open(os.path.join(file_path, file_name), 'r') as file_data:
-            module.content = file_data.read()
         # Get import dependencies
         import_infos = ImportFinder(file_name, file_path).list_imports
         module.imports = {
-            self._find_module_of_import(imp.name, imp.level, file_path)
-            for imp in import_infos
+            self._find_module_of_import(imp.name, imp.level, file_path,
+                                        file_name) for imp in import_infos
         }
+
+        # Read code content
+        with open(os.path.join(file_path, file_name), 'r') as file_data:
+            content = file_data.readlines()
+
+            # Rewritten the relative import (if any)
+            for imp in import_infos:
+                if (file_name, imp.name) in self._relative_cache:
+                    # Find the line content import name
+                    line = self._find_relative_import(content, imp.name)
+                    # Find relative name and absolute name in the line
+                    dots_idx = line.find(' ' + ('.' * imp.level)) + 1
+                    relative = utils.find_word_at(line, dots_idx)
+                    absolute = self._relative_cache[(file_name, imp.name)]
+                    # change the line to absolute imports
+                    new_line = line.replace(relative, absolute)
+
+                    # Rewritten the line
+                    content[content.index(line)] = content[content.index(
+                        line)].replace(line, new_line)
+
+            module.content = ''.join(content)
+
         # NOTE(Nghia Lam): Remove standard python libraries (which has returned
         # None when finding module.)
         module.imports = {imp for imp in module.imports if imp is not None}
 
         self._modules[module_name] = module
+
+    def _find_relative_import(self, file_content, imp_name):
+        key_words = ['import', 'from']
+        imp_elements = imp_name.split('.')
+
+        for line in file_content:
+            if 'import' in line and 'from' in line:
+                query_words = line.split()
+                content = [
+                    word.replace('.', '')
+                    for word in query_words
+                    if word not in key_words
+                ]
+                result = all(map(lambda x, y: x == y, content, imp_elements))
+                if result:
+                    return line
+
+        return None
 
     def _find_module_name(self, file_name, file_path):
         module_name = []
@@ -173,7 +214,7 @@ class ModuleGraph(object):
 
         return module_name
 
-    def _find_module_of_import(self, imp_name, imp_level, file_path):
+    def _find_module_of_import(self, imp_name, imp_level, file_path, file_name):
         """Given a fully qualified name, find what module contains it."""
         if imp_name in sys.modules or imp_name in sys.builtin_module_names:
             return None
@@ -184,8 +225,8 @@ class ModuleGraph(object):
 
         extrapath = None
         if imp_level and imp_level > 1:
-            # NOTE(Nghia Lam): Find the trailling path if the level is > 1 for
-            # relative import.
+            # NOTE(Nghia Lam): Find the trailling extra path if the level is >
+            # 1 for relative import.
             # from .. import something
             # --> The path must go up one
             # from ... import something
@@ -196,19 +237,30 @@ class ModuleGraph(object):
             extrapath = os.path.sep.join(extrapath)
 
         if (imp_name, extrapath) in self._module_cache:
-            return self._module_cache[(imp_name, extrapath)]
+            module = self._module_cache[(imp_name, extrapath)]
+            if imp_level >= 1 and (file_name,
+                                   imp_name) not in self._relative_cache:
+                self._relative_cache[(file_name, imp_name)] = module
+            return module
 
+        result = None
         while name:
             result = self._get_name_via_module(name, extrapath)
             if result:
-                return result
+                break
             result = self._get_name_via_package(name, extrapath)
             if result:
-                return result
+                break
 
+            # Get everything before the last "."
             name = name.rpartition('.')[0]
 
-        return imp_name
+        # Find full path module
+        if imp_level >= 1 and (file_name, imp_name) not in self._relative_cache:
+            self._relative_cache[(file_name,
+                                  imp_name)] = result if result else imp_name
+
+        return result if result else imp_name
 
     def _get_name_via_module(self, imp_name, extrapath=None):
         imp_filename = imp_name.replace('.', os.path.sep) + '.py'
