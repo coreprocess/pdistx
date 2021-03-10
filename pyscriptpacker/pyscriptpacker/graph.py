@@ -1,6 +1,8 @@
 import os
 import sys
 import ast
+import bz2
+import base64
 
 from toposort import toposort_flatten
 
@@ -97,7 +99,9 @@ class ModuleGraph(object):
     if necessary.
     """
 
-    def __init__(self):
+    def __init__(self, is_minify=True):
+        self._is_minify = is_minify
+
         self._modules = {}
         self._module_cache = {}
         self._relative_cache = {}
@@ -162,8 +166,15 @@ class ModuleGraph(object):
                     # Rewritten the line
                     content[content.index(line)] = content[content.index(
                         line)].replace(line, new_line)
+            content = ''.join(content)
+            if self._is_minify:
+                compressed_source = bz2.compress(content.encode('utf-8'))
+                content = 'import bz2, base64\n'
+                content += "exec(bz2.decompress(base64.b64decode('"
+                content += base64.b64encode(compressed_source).decode('utf-8')
+                content += "')))\n"
 
-            module.content = ''.join(content)
+            module.content = content
 
         # NOTE(Nghia Lam): Remove standard python libraries (which has returned
         # None when finding module.)
