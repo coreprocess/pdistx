@@ -6,18 +6,14 @@ from pyscriptpacker import packer
 
 
 def parse_input(options, args):
-    """Check if the input options and arguments are valid and runs
-    `packer.pack` with the given command line options.
+    '''
+    Check if the input options and arguments are valid and runs `packer.pack`
+    with the given command line options.
 
     Args:
         options (dict): A dictionary contain all the options define in main().
         args (list): A list of input arguments.
-    """
-
-    if len(args) < 2:  # TODO(Nghia Lam): Find more dynamic approach
-        sys.stdout.write('Error: You must input all the required arguments. '
-                         'Please see --help for more information.')
-        sys.exit(1)
+    '''
 
     is_minify = options.minifier
     py_version = options.python_version
@@ -34,9 +30,9 @@ def parse_input(options, args):
 
 
 def main():
-    """
+    '''
     Sets up our command line options, prints the usage/help (if warranted).
-    """
+    '''
     usage = ('%prog [options] <output-path> <library-path> [...]')
     if '__main__.py' in sys.argv[0]:  # python -m pyscriptpacker
         usage = ('pyscriptpacker [options] <output-path> <library-path> [...]')
@@ -64,8 +60,12 @@ def main():
 
     if not args:
         parser.print_help()
-        sys.stdout.write('\nUnknown input arguments !!')
         sys.exit(2)
+    if len(args) < 2:  # TODO(Nghia Lam): Find more dynamic approach
+        sys.stdout.write('Error: You must input all the required arguments. '
+                         'Please see --help for more information.')
+        sys.exit(2)
+
     parse_input(options, args)
 
 

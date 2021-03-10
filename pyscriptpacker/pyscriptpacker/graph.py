@@ -10,9 +10,9 @@ from . import utils
 
 
 class ImportInfo(object):
-    """
+    '''
     A record of a name and the location of the import statement.
-    """
+    '''
 
     def __init__(self, name, level):
         self.name = name
@@ -28,12 +28,12 @@ class ImportInfo(object):
 
 
 class ImportFinder(ast.NodeVisitor):
-    """
+    '''
     This class is implemented as a NodeVisitor which will collect all the
     import dependencies when visit a new file as root.
 
     Reference: https://www.mattlayman.com/blog/2018/decipher-python-ast/
-    """
+    '''
 
     def __init__(self, file_name, file_path):
         self._imports = []
@@ -62,9 +62,9 @@ class ImportFinder(ast.NodeVisitor):
 
 
 class Module(object):
-    """
+    '''
     Node in a module dependency graph.
-    """
+    '''
 
     def __init__(self, module_name, file_name):
         self.module_name = module_name
@@ -94,10 +94,10 @@ class Module(object):
 
 
 class ModuleGraph(object):
-    """
+    '''
     Module graph tree used for detect import dependencies and order them
     if necessary.
-    """
+    '''
 
     def __init__(self, is_minify=True):
         self._is_minify = is_minify
@@ -162,17 +162,19 @@ class ModuleGraph(object):
                     absolute = self._relative_cache[(file_name, imp.name)]
                     # change the line to absolute imports
                     new_line = line.replace(relative, absolute)
-
                     # Rewritten the line
                     content[content.index(line)] = content[content.index(
                         line)].replace(line, new_line)
             content = ''.join(content)
+
             if self._is_minify:
+                # Compress the source code using bz2
+                # Reference: https://github.com/liftoff/pyminifier/blob/087ea7b0c8c964f1f907c3f350f5ce281798db86/pyminifier/compression.py#L51-L76
                 compressed_source = bz2.compress(content.encode('utf-8'))
                 content = 'import bz2, base64\n'
-                content += "exec(bz2.decompress(base64.b64decode('"
+                content += 'exec(bz2.decompress(base64.b64decode("'
                 content += base64.b64encode(compressed_source).decode('utf-8')
-                content += "')))\n"
+                content += '")))\n'
 
             module.content = content
 
@@ -226,7 +228,9 @@ class ModuleGraph(object):
         return module_name
 
     def _find_module_of_import(self, imp_name, imp_level, file_path, file_name):
-        """Given a fully qualified name, find what module contains it."""
+        '''
+        Given a fully qualified name, find what module contains it.
+        '''
         if imp_name in sys.modules or imp_name in sys.builtin_module_names:
             return None
         if imp_name.endswith('.*'):
