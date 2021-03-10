@@ -19,6 +19,7 @@ def parse_input(options, args):
                          'Please see --help for more information.')
         sys.exit(1)
 
+    is_minify = options.minifier
     py_version = options.python_version
     output_path = args[0]
     lib_paths = args[1:]
@@ -29,7 +30,7 @@ def parse_input(options, args):
             'lower than 2.7. Please see --help for more information.')
         sys.exit(1)
 
-    packer.pack(py_version, output_path, lib_paths)
+    packer.pack(py_version, is_minify, output_path, lib_paths)
 
 
 def main():
@@ -49,6 +50,14 @@ def main():
         help=('Specify the python verson for packaging. '
               'Currently support: 2.7, 3.5, 3.6, 3.7, 3.8'),
         metavar='<python version>',
+    )
+    parser.add_option(
+        '-m',
+        '--minifier',
+        action='store_true',
+        dest='minifier',
+        default=False,
+        help='Minifier the Python file content using pyminifier.',
     )
 
     options, args = parser.parse_args()
