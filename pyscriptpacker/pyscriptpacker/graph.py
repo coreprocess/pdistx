@@ -118,9 +118,10 @@ class ModuleGraph(object):
                 self._paths.append(root)
 
                 for file in files:
-                    # TODO(Nghia Lam): exclude `setup.py` because some structure
-                    # does put the `setup.py` outside of the module folder, not
-                    # inside it. Do we have a better way to solve this?
+                    # TODO(Nghia Lam): I exclude `setup.py` because some
+                    # structure does put the `setup.py` outside of the module
+                    # folder, not inside it. Do we have a better way to solve
+                    # this?
                     if file.endswith('.py') and file != 'setup.py':
                         self.parse_file(file, root)
 

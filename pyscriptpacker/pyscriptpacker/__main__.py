@@ -23,7 +23,7 @@ def parse_input(options, args):
     output_path = args[0]
     lib_paths = args[1:]
 
-    if py_version < '2.7':
+    if py_version < '2.7' or py_version > '3.9':
         sys.stdout.write(
             'Error: pyscriptpacker not support python version '
             'lower than 2.7. Please see --help for more information.')

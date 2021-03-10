@@ -23,6 +23,7 @@ def get_setup_module_code(python_version):
 def pack(python_version, output_path, library_paths):
     main_script = 'import sys\n\n'
 
+    # Init module graph to build the dependencies data.
     module_graph = graph.ModuleGraph()
     module_graph.parse_paths(library_paths)
 
