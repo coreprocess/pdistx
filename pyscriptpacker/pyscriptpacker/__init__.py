@@ -13,5 +13,8 @@ __status__ = 'In active development'
 #   - [X] Detect import dependencies.
 #   - [X] Sort import order based on the dependencies graph (using toposort).
 #   - [X] Scope root python name to avoid name clash.
+#   - [ ] Change CLI to support a list module input from user.
+#   - [ ] Output with Python 2/3 compatible.
 #   - [ ] Documentation.
+#   - [ ] IMPORTANT: Code quality improvement.
 #   - [ ] IMPORTANT: Code quality review.

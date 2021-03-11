@@ -5,28 +5,22 @@ from pyscriptpacker import __version__
 from pyscriptpacker import packer
 
 
-def parse_input(options, args):
+def parse_input(python_version, is_minify, output_path, lib_paths):
     '''
-    Check if the input options and arguments are valid and runs `packer.pack`
+    Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
 
     Args:
         options (dict): A dictionary contain all the options define in main().
         args (list): A list of input arguments.
     '''
-
-    is_minify = options.minifier
-    py_version = options.python_version
-    output_path = args[0]
-    lib_paths = args[1:]
-
-    if py_version < '2.7' or py_version > '3.9':
+    if python_version < '2.7' or python_version > '3.9':
         sys.stdout.write(
             'Error: pyscriptpacker not support python version '
             'lower than 2.7. Please see --help for more information.')
         sys.exit(1)
 
-    packer.pack(py_version, is_minify, output_path, lib_paths)
+    packer.pack(python_version, is_minify, output_path, lib_paths)
 
 
 def main():
@@ -44,7 +38,7 @@ def main():
         dest='python_version',
         default='3.8',
         help=('Specify the python verson for packaging. '
-              'Currently support: 2.7, 3.5, 3.6, 3.7, 3.8'),
+              'Currently support: 2.7, 3.5, 3.6, 3.7, 3.8, 3.9'),
         metavar='<python version>',
     )
     parser.add_option(
@@ -61,12 +55,12 @@ def main():
     if not args:
         parser.print_help()
         sys.exit(2)
-    if len(args) < 2:  # TODO(Nghia Lam): Find more dynamic approach
+    if len(args) < 2:
         sys.stdout.write('Error: You must input all the required arguments. '
                          'Please see --help for more information.')
         sys.exit(2)
 
-    parse_input(options, args)
+    parse_input(options.python_version, options.minifier, args[0], args[1:])
 
 
 if __name__ == '__main__':
