@@ -24,8 +24,8 @@ def pack(project_names, output, directories, python_version, is_minify):
     main_script = 'import sys\n\n'
 
     # Init module graph to build the dependencies data.
-    module_graph = graph.ModuleGraph(project_names, is_minify)
-    module_graph.parse_paths(directories)
+    module_graph = graph.ModuleGraph(is_minify)
+    module_graph.parse_paths(directories, project_names)
 
     main_script += '_modules = ' + str(module_graph.generate_data())
     main_script += '\n'

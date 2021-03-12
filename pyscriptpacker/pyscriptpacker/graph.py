@@ -99,8 +99,7 @@ class ModuleGraph(object):
     if necessary.
     '''
 
-    def __init__(self, module_names, is_minify=True):
-        self._module_names = module_names
+    def __init__(self, is_minify=True):
         self._is_minify = is_minify
 
         self._modules = {}
@@ -118,28 +117,27 @@ class ModuleGraph(object):
 
         return data
 
-    def parse_paths(self, paths):
-        for mod_name in self._module_names:
+    def parse_paths(self, paths, project_names):
+        module_paths = []
+        # Find the paths contain the modules which is the desired targets to be
+        # packed.
+        for module_name in project_names:
             for path in paths:
-                module_path = os.path.join(path, mod_name)
-                if not os.path.exists(module_path):
-                    return
+                full_path = os.path.join(path, module_name)
+                if os.path.exists(full_path):
+                    module_paths.append(full_path)
+                    break
 
-                for root, _, files in os.walk(module_path):
-                    self._paths.append(root)
-
-                    for file in files:
-                        if file.endswith('.py') and file != 'setup.py':
-                            self.parse_file(file, root)
-
-                break
+        # Find all the python file in the module paths
+        for module_path in module_paths:
+            for root, _, files in os.walk(module_path):
+                self._paths.append(root)
+                for file in files:
+                    if file.endswith('.py'):
+                        self.parse_file(file, root)
 
     def parse_file(self, file_name, file_path):
-        # NOTE(Nghia Lam): We did make sure the default file_path contain at
-        # least one python file, it means that the main folder in file_path is
-        # a module. But we need to make get all the parent scope of the module
-        # to avoid name clashes.
-        module_name = self._find_module_name(file_name, file_path)
+        module_name = self._find_full_module_name(file_name, file_path)
         module = Module(module_name, file_name)
         module.is_package = (file_name == '__init__.py')
         # Get import dependencies
@@ -204,7 +202,7 @@ class ModuleGraph(object):
 
         return None
 
-    def _find_module_name(self, file_name, file_path):
+    def _find_full_module_name(self, file_name, file_path):
         module_name = []
 
         elements = file_path.split(os.path.sep)
@@ -285,8 +283,8 @@ class ModuleGraph(object):
         if extrapath:
             full_path = os.path.join(extrapath, imp_filename)
             if os.path.exists(full_path):
-                module_name = self._find_module_name(imp_filename,
-                                                     os.path.dirname(full_path))
+                module_name = self._find_full_module_name(
+                    imp_filename, os.path.dirname(full_path))
                 self._module_cache[(imp_name, extrapath)] = module_name
                 return module_name
 
@@ -294,7 +292,7 @@ class ModuleGraph(object):
             if not os.path.isfile(path):
                 full_path = os.path.join(path, imp_filename)
                 if os.path.exists(full_path):
-                    module_name = self._find_module_name(
+                    module_name = self._find_full_module_name(
                         imp_filename, os.path.dirname(full_path))
                     self._module_cache[(imp_name, extrapath)] = module_name
                     return module_name
