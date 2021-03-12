@@ -7,10 +7,11 @@ from pyscriptpacker import packer
 PYTHON_VERSIONS = ['2', '3', 'both']
 
 
-class CLIExtendOption(Option):
+class _CLIExtendOption(Option):
     '''
-    Implementation of an action of CLI which can take multiple values in a
-    single comma-delimited string, and extend an existing list with them.
+    Implementation of an option class for CLI OptionParser which has an
+    action 'extend': take multiple values in a single comma-delimited string,
+    and extend an existing list with them.
 
     Example:
         --names=foo,bar --names blah --names ding,dong
@@ -21,6 +22,8 @@ class CLIExtendOption(Option):
     '''
     ACTIONS = Option.ACTIONS + ('extend',)
     STORE_ACTIONS = Option.STORE_ACTIONS + ('extend',)
+    TYPED_ACTIONS = Option.TYPED_ACTIONS + ('extend',)
+    ALWAYS_TYPED_ACTIONS = Option.ALWAYS_TYPED_ACTIONS + ('extend',)
 
     def take_action(self, action, dest, opt, value, values, parser):
         if action == 'extend':
@@ -30,17 +33,51 @@ class CLIExtendOption(Option):
             Option.take_action(self, action, dest, opt, value, values, parser)
 
 
+def _assertion(condition, error_message):
+    if not condition:
+        sys.stdout.write(error_message +
+                         '\nPlease see --help for more information.')
+        sys.exit(1)
+
+
+def _parse_input(project_names, output, directories, python_version, is_minify):
+    '''
+    Check if the input options and arguments are valid and run `packer.pack`
+    with the given command line options.
+
+    Args:
+        options (dict): A dictionary contain all the options define in main().
+        args (list): A list of input arguments.
+    '''
+    _assertion(
+        output,
+        'Error: pyscriptpacker needs the user specify the desired output file.')
+    _assertion(
+        len(project_names) >= 1,
+        'Error: pyscriptpacker needs at least one project name.')
+    _assertion(
+        len(directories) >= 1,
+        'Error: pyscriptpacker needs directories contains the projects.')
+    _assertion(
+        python_version in PYTHON_VERSIONS,
+        'Error: pyscriptpacker does not support the input python version.')
+
+    packer.pack(project_names, output, directories, python_version, is_minify)
+
+
 def main():
     '''
     Sets up our command line options, prints the usage/help (if warranted).
     '''
-    usage = ('%prog [options] -n project,extra_projects,... ' +
+    usage = ('%prog [options] -n <project>[,extra_projects,...]' +
              '-o <output> <directory> [extra_dirs...]')
     if '__main__.py' in sys.argv[0]:  # python -m pyscriptpacker
-        usage = ('pyscriptpacker [options] -n project,extra_projects,... ' +
+        usage = ('pyscriptpacker [options] -n <project>[,extra_projects,...] ' +
                  '-o <output> <directory> [extra_dirs...]')
 
-    parser = OptionParser(usage=usage, version=__version__)
+    parser = OptionParser(option_class=_CLIExtendOption,
+                          usage=usage,
+                          version=__version__)
     parser.disable_interspersed_args()
 
     primary_opts = OptionGroup(
@@ -50,6 +87,7 @@ def main():
     primary_opts.add_option(
         '-n',
         '--names',
+        action='extend',
         dest='project_names',
         default=[],
         help=('specify the projects will be packed.'),
@@ -91,51 +129,13 @@ def main():
 
     options, args = parser.parse_args()
 
-    parse_input(
+    _parse_input(
         options.project_names,
         options.output,
         args[0:],
         options.python_version,
         options.minifier,
     )
-
-
-def parse_input(
-    project_names,
-    output_path,
-    directories,
-    python_version,
-    is_minify,
-):
-    '''
-    Check if the input options and arguments are valid and run `packer.pack`
-    with the given command line options.
-
-    Args:
-        options (dict): A dictionary contain all the options define in main().
-        args (list): A list of input arguments.
-    '''
-    assertion(
-        output_path,
-        'Error: pyscriptpacker needs the user specify the desired output file.')
-    assertion(
-        len(project_names) >= 1,
-        'Error: pyscriptpacker needs at least one project name.')
-    assertion(
-        len(directories) >= 1,
-        'Error: pyscriptpacker needs directories contains the projects.')
-    assertion(
-        python_version in PYTHON_VERSIONS,
-        'Error: pyscriptpacker does not support the input python version.')
-
-    packer.pack(python_version, is_minify, output_path, directories)
-
-
-def assertion(condition, error_message):
-    if not condition:
-        sys.stdout.write(error_message +
-                         '\nPlease see --help for more information.')
-        sys.exit(1)
 
 
 if __name__ == '__main__':

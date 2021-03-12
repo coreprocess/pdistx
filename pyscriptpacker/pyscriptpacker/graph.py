@@ -99,12 +99,14 @@ class ModuleGraph(object):
     if necessary.
     '''
 
-    def __init__(self, is_minify=True):
+    def __init__(self, module_names, is_minify=True):
+        self._module_names = module_names
         self._is_minify = is_minify
 
         self._modules = {}
         self._module_cache = {}
         self._relative_cache = {}
+
         self._paths = list(sys.path)
 
     def generate_data(self):
@@ -117,20 +119,20 @@ class ModuleGraph(object):
         return data
 
     def parse_paths(self, paths):
-        for path in paths:
-            if not os.path.exists(path):
-                return
+        for mod_name in self._module_names:
+            for path in paths:
+                module_path = os.path.join(path, mod_name)
+                if not os.path.exists(module_path):
+                    return
 
-            for root, _, files in os.walk(path):
-                self._paths.append(root)
+                for root, _, files in os.walk(module_path):
+                    self._paths.append(root)
 
-                for file in files:
-                    # TODO(Nghia Lam): I exclude `setup.py` because some
-                    # structure does put the `setup.py` outside of the module
-                    # folder, not inside it. Do we have a better way to solve
-                    # this?
-                    if file.endswith('.py') and file != 'setup.py':
-                        self.parse_file(file, root)
+                    for file in files:
+                        if file.endswith('.py') and file != 'setup.py':
+                            self.parse_file(file, root)
+
+                break
 
     def parse_file(self, file_name, file_path):
         # NOTE(Nghia Lam): We did make sure the default file_path contain at
