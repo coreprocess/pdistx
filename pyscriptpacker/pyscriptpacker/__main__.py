@@ -4,8 +4,6 @@ from optparse import OptionParser, OptionGroup, Option
 from pyscriptpacker import __version__
 from pyscriptpacker import packer
 
-PYTHON_VERSIONS = ['2', '3', 'both']
-
 
 class _CLIExtendOption(Option):
     '''
@@ -40,7 +38,7 @@ def _assertion(condition, error_message):
         sys.exit(1)
 
 
-def _parse_input(project_names, output, directories, python_version, is_minify):
+def _parse_input(project_names, output, directories, is_minify):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
@@ -58,11 +56,8 @@ def _parse_input(project_names, output, directories, python_version, is_minify):
     _assertion(
         len(directories) >= 1,
         'Error: pyscriptpacker needs directories contains the projects.')
-    _assertion(
-        python_version in PYTHON_VERSIONS,
-        'Error: pyscriptpacker does not support the input python version.')
 
-    packer.pack(project_names, output, directories, python_version, is_minify)
+    packer.pack(project_names, output, directories, is_minify)
 
 
 def main():
@@ -107,17 +102,6 @@ def main():
         'Optional Flags',
     )
     sub_opts.add_option(
-        '-p',
-        '--python',
-        dest='python_version',
-        default='both',
-        type='choice',
-        choices=PYTHON_VERSIONS,
-        help=('python version for output file, ' +
-              'choose from "2", "3" or "both".'),
-        metavar='<python version>',
-    )
-    sub_opts.add_option(
         '-m',
         '--minifier',
         action='store_true',
@@ -133,7 +117,6 @@ def main():
         options.project_names,
         options.output,
         args[0:],
-        options.python_version,
         options.minifier,
     )
 

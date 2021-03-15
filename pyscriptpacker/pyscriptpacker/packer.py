@@ -15,13 +15,8 @@ def write_output(output_path, texts):
         sys.exit(1)
 
 
-def get_setup_module_code(python_version):
-    return (utils.py2_setup_code
-            if python_version == '2.7' else utils.py3_setup_code)
-
-
-def pack(project_names, output, directories, python_version, is_minify):
-    main_script = 'import sys\n\n'
+def pack(project_names, output, directories, is_minify):
+    main_script = ''
 
     # Init module graph to build the dependencies data.
     module_graph = graph.ModuleGraph(is_minify)
@@ -30,6 +25,6 @@ def pack(project_names, output, directories, python_version, is_minify):
     main_script += '_modules = ' + str(module_graph.generate_data())
     main_script += '\n'
 
-    main_script += get_setup_module_code(python_version)
+    main_script += utils.get_setup_code()
 
     write_output(output, main_script)

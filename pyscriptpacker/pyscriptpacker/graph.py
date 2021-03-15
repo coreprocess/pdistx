@@ -108,15 +108,6 @@ class ModuleGraph(object):
 
         self._paths = list(sys.path)
 
-    def generate_data(self):
-        data = []
-
-        list_dependencies = self._build_dependency_data()
-        for module in list_dependencies:
-            data.append(self._modules[module].to_dict())
-
-        return data
-
     def parse_paths(self, paths, project_names):
         module_paths = []
         # Find the paths contain the modules which is the desired targets to be
@@ -184,23 +175,21 @@ class ModuleGraph(object):
 
         self._modules[module_name] = module
 
-    def _find_relative_import(self, file_content, imp_name):
-        key_words = ['import', 'from']
-        imp_elements = imp_name.split('.')
+    def generate_data(self):
+        data = []
 
-        for line in file_content:
-            if 'import' in line and 'from' in line:
-                query_words = line.split()
-                content = [
-                    word.replace('.', '')
-                    for word in query_words
-                    if word not in key_words
-                ]
-                result = all(map(lambda x, y: x == y, content, imp_elements))
-                if result:
-                    return line
+        list_dependencies = self._build_dependency_data()
+        for module in list_dependencies:
+            data.append(self._modules[module].to_dict())
 
-        return None
+        return data
+
+    def _build_dependency_data(self):
+        data = {}
+        for key in self._modules:
+            data[key] = self._modules[key].imports
+
+        return toposort_flatten(data)
 
     def _find_full_module_name(self, file_name, file_path):
         module_name = []
@@ -226,6 +215,24 @@ class ModuleGraph(object):
             module_name += '.' + file_name
 
         return module_name
+
+    def _find_relative_import(self, file_content, imp_name):
+        key_words = ['import', 'from']
+        imp_elements = imp_name.split('.')
+
+        for line in file_content:
+            if 'import' in line and 'from' in line:
+                query_words = line.split()
+                content = [
+                    word.replace('.', '')
+                    for word in query_words
+                    if word not in key_words
+                ]
+                result = all(map(lambda x, y: x == y, content, imp_elements))
+                if result:
+                    return line
+
+        return None
 
     def _find_module_of_import(self, imp_name, imp_level, file_path, file_name):
         '''
@@ -278,6 +285,7 @@ class ModuleGraph(object):
         return result if result else imp_name
 
     def _get_name_via_module(self, imp_name, extrapath=None):
+        imp_name = imp_name.split('.')[-1]
         imp_filename = imp_name.replace('.', os.path.sep) + '.py'
 
         if extrapath:
@@ -301,10 +309,3 @@ class ModuleGraph(object):
 
     def _get_name_via_package(self, imp_name, extrapath=None):
         return self._get_name_via_module(imp_name + '.__init__', extrapath)
-
-    def _build_dependency_data(self):
-        data = {}
-        for key in self._modules:
-            data[key] = self._modules[key].imports
-
-        return toposort_flatten(data)

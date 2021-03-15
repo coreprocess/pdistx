@@ -1,4 +1,5 @@
-py2_setup_code = '''
+setup_code = '''
+import sys
 import imp
 
 for module in _modules:
@@ -16,27 +17,12 @@ for module in _modules:
         setattr(sys.modules[package_name], local_name, sys.modules[module['name']])
 
 for module in _modules:
-    exec module['code'] in sys.modules[module['name']].__dict__
-'''
-
-py3_setup_code = '''
-import importlib.util
-
-for module in _modules:
-    sys.modules[module['name']] = importlib.util.module_from_spec(
-        importlib.util.spec_from_loader(module['name'],
-                                        loader=None,
-                                        is_package=str(module['is_package'])))
-
-for module in _modules:
-    if not module['is_package']:
-        package_name = '.'.join(module['name'].split('.')[:-1])
-        local_name = module['name'].split('.')[-1]
-        setattr(sys.modules[package_name], local_name, sys.modules[module['name']])
-
-for module in _modules:
     exec(module['code'], sys.modules[module['name']].__dict__)
 '''
+
+
+def get_setup_code():
+    return setup_code
 
 
 def find_word_at(string, index):
