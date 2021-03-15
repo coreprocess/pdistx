@@ -12,8 +12,12 @@ for module in _modules:
 
 for module in _modules:
     if not module['is_package']:
-        package_name = '.'.join(module['name'].split('.')[:-1])
-        local_name = module['name'].split('.')[-1]
+        split_name = module['name'].split('.')
+        if len(split_name) > 1:
+            package_name = '.'.join(split_name[:-1])
+        else:
+            package_name = split_name[0]
+        local_name = split_name[-1]
         setattr(sys.modules[package_name], local_name, sys.modules[module['name']])
 
 for module in _modules:

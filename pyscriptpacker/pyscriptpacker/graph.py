@@ -4,6 +4,7 @@ import imp
 import ast
 import bz2
 import base64
+import queue
 
 from toposort import toposort_flatten
 
@@ -115,6 +116,9 @@ class ModuleGraph(object):
 
         self._paths = list(sys.path)
 
+        self._file_queue = queue.Queue()
+        self._root_queue = queue.Queue()
+
     def parse_paths(self, paths, project_names):
         self._target_names = project_names
 
@@ -135,7 +139,11 @@ class ModuleGraph(object):
                 self._paths.append(root)
                 for file in files:
                     if file.endswith('.py'):
-                        self.parse_file(file, root)
+                        self._file_queue.put(file)
+                        self._root_queue.put(root)
+
+        while (not self._file_queue.empty()):
+            self.parse_file(self._file_queue.get(), self._root_queue.get())
 
     def parse_file(self, file_name, file_path):
         module_name = self._find_full_module_name(file_name, file_path)
@@ -153,14 +161,14 @@ class ModuleGraph(object):
             content = file_data.readlines()
 
             # Rewritten the relative import (if any)
-            for imp in import_infos:
-                if (file_name, imp.name) in self._relative_cache:
+            for info in import_infos:
+                if (file_name, info.name) in self._relative_cache:
                     # Find the line contains import name
-                    line = self._find_relative_import(content, imp.name)
+                    line = self._find_relative_import(content, info.name)
                     # Find relative name and absolute name in the line
-                    dots_idx = line.find(' ' + ('.' * imp.level)) + 1
+                    dots_idx = line.find(' ' + ('.' * info.level)) + 1
                     relative = utils.find_word_at(line, dots_idx)
-                    absolute = self._relative_cache[(file_name, imp.name)]
+                    absolute = self._relative_cache[(file_name, info.name)]
                     # change the line to absolute imports
                     new_line = line.replace(relative, absolute)
                     # Rewritten the line
@@ -231,19 +239,22 @@ class ModuleGraph(object):
 
         # Add file name to module name for scope management
         if '__init__.py' not in file_name:
-            file_name = file_name.split('.py')[0]
+            name = file_name.split('.py')[0]
             # Remove trailing namespace
-            if os.path.sep in file_name:
-                file_name = file_name.split(os.path.sep)[-1]
-            module_name += '.' + file_name
+            if os.path.sep in name:
+                name = name.split(os.path.sep)[-1]
+            module_name += '.' + name
 
         # Check for external libraries
         if 'site-packages' in module_name:
             module_name = module_name.rpartition('site-packages.')[2]
-
-        if ((self._parent_scope + '.') not in module_name and
-                not self._is_external(module_name)):
+        if self._is_external(module_name):
+            if module_name not in self._modules:
+                self._file_queue.put(file_name)
+                self._root_queue.put(file_path)
+        elif (self._parent_scope + '.') not in module_name:
             module_name = self._parent_scope + '.' + module_name
+
         return module_name
 
     def _find_relative_import(self, file_content, imp_name):
@@ -277,7 +288,6 @@ class ModuleGraph(object):
         Returns:
             bool: Whether the module is in the python standard library.
         '''
-        python_path = os.path.dirname(sys.executable)
         if '.' in module:
             module = module.split('.')[0]
 
@@ -287,8 +297,7 @@ class ModuleGraph(object):
             return False
 
         if not imp.is_builtin(module):
-            if (('site-packages' in module_path) or
-                (python_path in module_path)):
+            if 'site-packages' in module_path:
                 return False
 
         return True
