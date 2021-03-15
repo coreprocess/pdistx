@@ -1,5 +1,6 @@
 import os
 import sys
+import imp
 import ast
 import bz2
 import base64
@@ -99,21 +100,30 @@ class ModuleGraph(object):
     if necessary.
     '''
 
-    def __init__(self, is_minify=True):
+    def __init__(self, parent_scope, is_minify=True):
+        self._parent_scope = parent_scope
         self._is_minify = is_minify
 
         self._modules = {}
         self._module_cache = {}
+        self._target_names = []
         self._relative_cache = {}
+
+        parent_module = Module(self._parent_scope, '')
+        parent_module.is_package = True
+        self._modules[self._parent_scope] = parent_module
 
         self._paths = list(sys.path)
 
     def parse_paths(self, paths, project_names):
+        self._target_names = project_names
+
         module_paths = []
         # Find the paths contain the modules which is the desired targets to be
         # packed.
         for module_name in project_names:
             for path in paths:
+                self._paths.append(path)
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
                     module_paths.append(full_path)
@@ -145,7 +155,7 @@ class ModuleGraph(object):
             # Rewritten the relative import (if any)
             for imp in import_infos:
                 if (file_name, imp.name) in self._relative_cache:
-                    # Find the line content import name
+                    # Find the line contains import name
                     line = self._find_relative_import(content, imp.name)
                     # Find relative name and absolute name in the line
                     dots_idx = line.find(' ' + ('.' * imp.level)) + 1
@@ -156,6 +166,8 @@ class ModuleGraph(object):
                     # Rewritten the line
                     content[content.index(line)] = content[content.index(
                         line)].replace(line, new_line)
+
+            self._add_parent_scope(content)
             content = ''.join(content)
 
             if self._is_minify:
@@ -174,6 +186,17 @@ class ModuleGraph(object):
         module.imports = {imp for imp in module.imports if imp is not None}
 
         self._modules[module_name] = module
+
+    def _add_parent_scope(self, content):
+        for line in content:
+            if 'import' in line and (self._parent_scope + '.') not in line:
+                query_words = line.split()
+                for word in query_words:
+                    check = [n for n in self._target_names if n in word]
+                    if check:
+                        query_words[query_words.index(
+                            word)] = self._parent_scope + '.' + word
+                content[content.index(line)] = ' '.join(query_words) + '\n'
 
     def generate_data(self):
         data = []
@@ -214,6 +237,13 @@ class ModuleGraph(object):
                 file_name = file_name.split(os.path.sep)[-1]
             module_name += '.' + file_name
 
+        # Check for external libraries
+        if 'site-packages' in module_name:
+            module_name = module_name.rpartition('site-packages.')[2]
+
+        if ((self._parent_scope + '.') not in module_name and
+                not self._is_external(module_name)):
+            module_name = self._parent_scope + '.' + module_name
         return module_name
 
     def _find_relative_import(self, file_content, imp_name):
@@ -234,11 +264,43 @@ class ModuleGraph(object):
 
         return None
 
+    def _is_external(self, module):
+        for name in self._target_names:
+            if name in module:
+                return False
+        return True
+
+    def _is_standard_library(self, module):
+        '''
+        Check if the given module is a standard library.
+
+        Returns:
+            bool: Whether the module is in the python standard library.
+        '''
+        python_path = os.path.dirname(sys.executable)
+        if '.' in module:
+            module = module.split('.')[0]
+
+        try:
+            module_path = imp.find_module(module)[1]
+        except ImportError:
+            return False
+
+        if not imp.is_builtin(module):
+            if (('site-packages' in module_path) or
+                (python_path in module_path)):
+                return False
+
+        return True
+
     def _find_module_of_import(self, imp_name, imp_level, file_path, file_name):
         '''
         Given a fully qualified name, find what module contains it.
+
+        Return:
+            string: Full module name of the given import information.
         '''
-        if imp_name in sys.modules or imp_name in sys.builtin_module_names:
+        if self._is_standard_library(imp_name):
             return None
         if imp_name.endswith('.*'):
             return imp_name[:-2]
@@ -278,14 +340,14 @@ class ModuleGraph(object):
             name = name.rpartition('.')[0]
 
         # Find full path module
-        if imp_level >= 1 and (file_name, imp_name) not in self._relative_cache:
+        if imp_level and imp_level >= 1 and ((file_name, imp_name)
+                                             not in self._relative_cache):
             self._relative_cache[(file_name,
                                   imp_name)] = result if result else imp_name
 
         return result if result else imp_name
 
     def _get_name_via_module(self, imp_name, extrapath=None):
-        imp_name = imp_name.split('.')[-1]
         imp_filename = imp_name.replace('.', os.path.sep) + '.py'
 
         if extrapath:
