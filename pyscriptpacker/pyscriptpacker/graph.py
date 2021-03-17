@@ -5,6 +5,7 @@ import ast
 import bz2
 import base64
 
+from queue import Queue
 from toposort import toposort_flatten
 
 from . import utils
@@ -94,6 +95,29 @@ class Module(object):
         )
 
 
+class ModuleFileQueue(object):
+    '''
+    A simple file queue system.
+    '''
+
+    def __init__(self):
+        self._files = Queue()
+        self._roots = Queue()
+
+    def put(self, file, root):
+        self._files.put(file)
+        self._roots.put(root)
+
+    def get_file(self):
+        return self._files.get()
+
+    def get_root(self):
+        return self._roots.get()
+
+    def empty(self):
+        return self._files.empty()
+
+
 class ModuleGraph(object):
     '''
     Module graph tree used for detect import dependencies and order them
@@ -107,6 +131,7 @@ class ModuleGraph(object):
         self._module_cache = {}
         self._target_names = []
         self._relative_cache = {}
+        self._queue = ModuleFileQueue()
 
         self._paths = list(sys.path)
 
@@ -114,8 +139,7 @@ class ModuleGraph(object):
         self._target_names = project_names
 
         module_paths = []
-        # Find the paths contain the modules which is the desired targets to be
-        # packed.
+        # Find the paths contain the desired modules.
         for module_name in project_names:
             for path in paths:
                 full_path = os.path.join(path, module_name)
@@ -130,9 +154,12 @@ class ModuleGraph(object):
                 self._paths.append(root)
                 for file in files:
                     if file.endswith('.py'):
-                        self.parse_file(file, root)
+                        self._queue.put(file, root)
 
-    def parse_file(self, file_name, file_path):
+        while not self._queue.empty():
+            self._parse_file(self._queue.get_file(), self._queue.get_root())
+
+    def _parse_file(self, file_name, file_path):
         module_name = self._find_full_module_name(file_name, file_path)
         module = Module(module_name, file_name)
         module.is_package = (file_name == '__init__.py')
@@ -261,9 +288,9 @@ class ModuleGraph(object):
             module = module.split('.')[0]
 
         # NOTE(Nghia Lam): Check if the target name is in the module name.
-        for name in self._target_names:
-            if name in module:
-                return True
+        if not self._is_external(module):
+            return True
+
         # NOTE(Nghia Lam): Check if the module name is belong to a Python
         # standard libraries or other external libraries.
         if module in sys.builtin_module_names or module in sys.modules:
@@ -337,6 +364,8 @@ class ModuleGraph(object):
                 module_name = self._find_full_module_name(
                     imp_filename, os.path.dirname(full_path))
                 self._module_cache[(imp_name, extrapath)] = module_name
+                if module_name not in self._modules:
+                    self._queue.put(imp_filename, os.path.dirname(full_path))
                 return module_name
 
         for path in self._paths:
@@ -346,6 +375,9 @@ class ModuleGraph(object):
                     module_name = self._find_full_module_name(
                         imp_filename, os.path.dirname(full_path))
                     self._module_cache[(imp_name, extrapath)] = module_name
+                    if module_name not in self._modules:
+                        self._queue.put(imp_filename,
+                                        os.path.dirname(full_path))
                     return module_name
 
         return None
