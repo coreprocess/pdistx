@@ -189,6 +189,8 @@ class ModuleGraph(object):
                         # Rewritten the line
                         content[content.index(line)] = content[content.index(
                             line)].replace(line, new_line)
+
+            self._rewrite_to_relative_scope(content, module_name)
             content = ''.join(content)
 
             if self._is_minify:
@@ -253,16 +255,38 @@ class ModuleGraph(object):
 
         return module_name
 
+    def _rewrite_to_relative_scope(self, content, module):
+        dot = '.'
+
+        for line in content:
+            if 'import' in line:
+                splits = line.split()
+                for name in self._target_names:
+                    for word in splits:
+                        scope = word
+                        if '.' in word:
+                            # Always get the highest scope
+                            scope = word.split('.')[0]
+                        if name == scope:
+                            lvl = 1
+                            if module.count('.') == 0:
+                                lvl += 1
+                            else:
+                                lvl += module.count('.')
+                            splits[splits.index(word)] = dot * lvl + word
+
+                content[content.index(line)] = ' '.join(splits) + '\n'
+
     def _find_relative_import(self, file_content, imp_name):
         key_words = ['import', 'from']
         imp_elements = imp_name.split('.')
 
         for line in file_content:
             if 'import' in line and 'from' in line:
-                query_words = line.split()
+                splits = line.split()
                 content = [
                     word.replace('.', '')
-                    for word in query_words
+                    for word in splits
                     if word not in key_words
                 ]
                 result = all(map(lambda x, y: x == y, content, imp_elements))
