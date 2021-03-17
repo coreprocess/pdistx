@@ -22,8 +22,14 @@ def pack(project_names, output, directories, is_minify):
     module_graph = graph.ModuleGraph(is_minify)
     module_graph.parse_paths(directories, project_names)
 
-    main_script += '_modules = ' + str(module_graph.generate_data())
-    main_script += '\n'
+    main_script += '_modules = ['
+    for data in module_graph.generate_data():
+        main_script += '{\n'
+        main_script += '"name": ' + '__name__ + ".' + data.get('name') + '" ,'
+        main_script += '"is_package": ' + str(data.get('is_package')) + ','
+        main_script += '"code": ' + repr(data.get('code')) + ','
+        main_script += '},\n'
+    main_script += ']\n'
 
     main_script += utils.get_setup_code()
 
