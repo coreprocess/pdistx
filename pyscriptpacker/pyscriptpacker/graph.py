@@ -377,7 +377,7 @@ class ModuleGraph(object):
             self._relative_cache[(file_name,
                                   imp_name)] = result if result else imp_name
 
-        return result if result else imp_name
+        return result if result else None
 
     def _get_name_via_module(self, imp_name, extrapath=None):
         imp_filename = imp_name.replace('.', os.path.sep) + '.py'
@@ -387,9 +387,12 @@ class ModuleGraph(object):
             if os.path.exists(full_path):
                 module_name = self._find_full_module_name(
                     imp_filename, os.path.dirname(full_path))
+                if self._is_external(module_name):
+                    return None
                 self._module_cache[(imp_name, extrapath)] = module_name
                 if module_name not in self._modules:
-                    self._queue.put(imp_filename, os.path.dirname(full_path))
+                    file = imp_filename.split(os.path.sep)[-1]
+                    self._queue.put(file, os.path.dirname(full_path))
                 return module_name
 
         for path in self._paths:
@@ -398,10 +401,12 @@ class ModuleGraph(object):
                 if os.path.exists(full_path):
                     module_name = self._find_full_module_name(
                         imp_filename, os.path.dirname(full_path))
+                    if self._is_external(module_name):
+                        return None
                     self._module_cache[(imp_name, extrapath)] = module_name
                     if module_name not in self._modules:
-                        self._queue.put(imp_filename,
-                                        os.path.dirname(full_path))
+                        file = imp_filename.split(os.path.sep)[-1]
+                        self._queue.put(file, os.path.dirname(full_path))
                     return module_name
 
         return None
