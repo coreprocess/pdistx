@@ -4,7 +4,6 @@ import imp
 import ast
 import bz2
 import base64
-import queue
 
 from toposort import toposort_flatten
 
@@ -101,8 +100,7 @@ class ModuleGraph(object):
     if necessary.
     '''
 
-    def __init__(self, parent_scope, is_minify=True):
-        self._parent_scope = parent_scope
+    def __init__(self, is_minify=True):
         self._is_minify = is_minify
 
         self._modules = {}
@@ -110,14 +108,7 @@ class ModuleGraph(object):
         self._target_names = []
         self._relative_cache = {}
 
-        parent_module = Module(self._parent_scope, '')
-        parent_module.is_package = True
-        self._modules[self._parent_scope] = parent_module
-
         self._paths = list(sys.path)
-
-        self._file_queue = queue.Queue()
-        self._root_queue = queue.Queue()
 
     def parse_paths(self, paths, project_names):
         self._target_names = project_names
@@ -127,9 +118,9 @@ class ModuleGraph(object):
         # packed.
         for module_name in project_names:
             for path in paths:
-                self._paths.append(path)
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
+                    self._paths.append(path)
                     module_paths.append(full_path)
                     break
 
@@ -139,11 +130,7 @@ class ModuleGraph(object):
                 self._paths.append(root)
                 for file in files:
                     if file.endswith('.py'):
-                        self._file_queue.put(file)
-                        self._root_queue.put(root)
-
-        while (not self._file_queue.empty()):
-            self.parse_file(self._file_queue.get(), self._root_queue.get())
+                        self.parse_file(file, root)
 
     def parse_file(self, file_name, file_path):
         module_name = self._find_full_module_name(file_name, file_path)
@@ -165,17 +152,16 @@ class ModuleGraph(object):
                 if (file_name, info.name) in self._relative_cache:
                     # Find the line contains import name
                     line = self._find_relative_import(content, info.name)
-                    # Find relative name and absolute name in the line
-                    dots_idx = line.find(' ' + ('.' * info.level)) + 1
-                    relative = utils.find_word_at(line, dots_idx)
-                    absolute = self._relative_cache[(file_name, info.name)]
-                    # change the line to absolute imports
-                    new_line = line.replace(relative, absolute)
-                    # Rewritten the line
-                    content[content.index(line)] = content[content.index(
-                        line)].replace(line, new_line)
-
-            self._add_parent_scope(content)
+                    if line:
+                        # Find relative name and absolute name in the line
+                        dots_idx = line.find(' ' + ('.' * info.level)) + 1
+                        relative = utils.find_word_at(line, dots_idx)
+                        absolute = self._relative_cache[(file_name, info.name)]
+                        # change the line to absolute imports
+                        new_line = line.replace(relative, absolute)
+                        # Rewritten the line
+                        content[content.index(line)] = content[content.index(
+                            line)].replace(line, new_line)
             content = ''.join(content)
 
             if self._is_minify:
@@ -194,17 +180,6 @@ class ModuleGraph(object):
         module.imports = {imp for imp in module.imports if imp is not None}
 
         self._modules[module_name] = module
-
-    def _add_parent_scope(self, content):
-        for line in content:
-            if 'import' in line and (self._parent_scope + '.') not in line:
-                query_words = line.split()
-                for word in query_words:
-                    check = [n for n in self._target_names if n in word]
-                    if check:
-                        query_words[query_words.index(
-                            word)] = self._parent_scope + '.' + word
-                content[content.index(line)] = ' '.join(query_words) + '\n'
 
     def generate_data(self):
         data = []
@@ -248,12 +223,6 @@ class ModuleGraph(object):
         # Check for external libraries
         if 'site-packages' in module_name:
             module_name = module_name.rpartition('site-packages.')[2]
-        if self._is_external(module_name):
-            if module_name not in self._modules:
-                self._file_queue.put(file_name)
-                self._root_queue.put(file_path)
-        elif (self._parent_scope + '.') not in module_name:
-            module_name = self._parent_scope + '.' + module_name
 
         return module_name
 
@@ -281,25 +250,28 @@ class ModuleGraph(object):
                 return False
         return True
 
-    def _is_standard_library(self, module):
+    def _is_target(self, module):
         '''
-        Check if the given module is a standard library.
+        Check if the given module is a build target of the user.
 
         Returns:
-            bool: Whether the module is in the python standard library.
+            bool: Whether the module is a build target of the user.
         '''
         if '.' in module:
             module = module.split('.')[0]
 
-        try:
-            module_path = imp.find_module(module)[1]
-        except ImportError:
+        # NOTE(Nghia Lam): Check if the target name is in the module name.
+        for name in self._target_names:
+            if name in module:
+                return True
+        # NOTE(Nghia Lam): Check if the module name is belong to a Python
+        # standard libraries or other external libraries.
+        if module in sys.builtin_module_names or module in sys.modules:
             return False
 
-        if not imp.is_builtin(module):
-            if 'site-packages' in module_path:
-                return False
-
+        # NOTE(Nghia Lam): Not found the module name everywhere so the program
+        # will try to pack it to see if this given module name is not at full
+        # scope. (relative # import)
         return True
 
     def _find_module_of_import(self, imp_name, imp_level, file_path, file_name):
@@ -309,7 +281,7 @@ class ModuleGraph(object):
         Return:
             string: Full module name of the given import information.
         '''
-        if self._is_standard_library(imp_name):
+        if not self._is_target(imp_name):
             return None
         if imp_name.endswith('.*'):
             return imp_name[:-2]
@@ -331,8 +303,8 @@ class ModuleGraph(object):
 
         if (imp_name, extrapath) in self._module_cache:
             module = self._module_cache[(imp_name, extrapath)]
-            if imp_level >= 1 and (file_name,
-                                   imp_name) not in self._relative_cache:
+            if (imp_level and imp_level >= 1 and
+                ((file_name, imp_name) not in self._relative_cache)):
                 self._relative_cache[(file_name, imp_name)] = module
             return module
 

@@ -1,4 +1,3 @@
-import os
 import sys
 
 from pyscriptpacker import utils
@@ -18,12 +17,9 @@ def write_output(output_path, texts):
 
 def pack(project_names, output, directories, is_minify):
     main_script = ''
-    parent_scope = output.split(os.path.sep)[-1]
-    if '.py' in parent_scope:
-        parent_scope = parent_scope.split('.py')[0]
 
     # Init module graph to build the dependencies data.
-    module_graph = graph.ModuleGraph(parent_scope, is_minify)
+    module_graph = graph.ModuleGraph(is_minify)
     module_graph.parse_paths(directories, project_names)
 
     main_script += '_modules = ' + str(module_graph.generate_data())
