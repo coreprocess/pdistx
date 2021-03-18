@@ -1,14 +1,11 @@
 import os
 import sys
-import imp
 import ast
 import bz2
 import base64
 
 from queue import Queue
 from toposort import toposort_flatten
-
-from . import utils
 
 
 class ImportInfo(object):
@@ -117,6 +114,9 @@ class ModuleFileQueue(object):
     def empty(self):
         return self._files.empty()
 
+    def in_queue(self, file, root):
+        return file in self._files.queue and root in self._roots.queue
+
 
 class ModuleGraph(object):
     '''
@@ -151,7 +151,6 @@ class ModuleGraph(object):
         # Find all the python file in the module paths
         for module_path in module_paths:
             for root, _, files in os.walk(module_path):
-                self._paths.append(root)
                 for file in files:
                     if file.endswith('.py'):
                         self._queue.put(file, root)
@@ -160,6 +159,9 @@ class ModuleGraph(object):
             self._parse_file(self._queue.get_file(), self._queue.get_root())
 
     def _parse_file(self, file_name, file_path):
+        if file_path not in self._paths:
+            self._paths.append(file_path)
+
         module_name = self._find_full_module_name(file_name, file_path)
         module = Module(module_name, file_name)
         module.is_package = (file_name == '__init__.py')
@@ -173,22 +175,6 @@ class ModuleGraph(object):
         # Read code content
         with open(os.path.join(file_path, file_name), 'r') as file_data:
             content = file_data.readlines()
-
-            # Rewritten the relative import (if any)
-            # for info in import_infos:
-            #     if (file_name, info.name) in self._relative_cache:
-            #         # Find the line contains import name
-            #         line = self._find_relative_import(content, info.name)
-            #         if line:
-            #             # Find relative name and absolute name in the line
-            #             dots_idx = line.find(' ' + ('.' * info.level)) + 1
-            #             relative = utils.find_word_at(line, dots_idx)
-            #             absolute = self._relative_cache[(file_name, info.name)]
-            #             # change the line to absolute imports
-            #             new_line = line.replace(relative, absolute)
-            #             # Rewritten the line
-            #             content[content.index(line)] = content[content.index(
-            #                 line)].replace(line, new_line)
 
             self._rewrite_to_relative_scope(content, module_name)
             content = ''.join(content)
@@ -260,6 +246,14 @@ class ModuleGraph(object):
 
         for line in content:
             if 'import' in line:
+                # Find indentation
+                indent = ''
+                for char in line:
+                    if char == ' ':
+                        indent += char
+                    else:
+                        break
+                # Parsing throught line
                 splits = line.split()
                 for name in self._target_names:
                     for word in splits:
@@ -275,25 +269,7 @@ class ModuleGraph(object):
                                 lvl += module.count('.')
                             splits[splits.index(word)] = dot * lvl + word
 
-                content[content.index(line)] = ' '.join(splits) + '\n'
-
-    # def _find_relative_import(self, file_content, imp_name):
-    #     key_words = ['import', 'from']
-    #     imp_elements = imp_name.split('.')
-
-    #     for line in file_content:
-    #         if 'import' in line and 'from' in line:
-    #             splits = line.split()
-    #             content = [
-    #                 word.replace('.', '')
-    #                 for word in splits
-    #                 if word not in key_words
-    #             ]
-    #             result = all(map(lambda x, y: x == y, content, imp_elements))
-    #             if result:
-    #                 return line
-
-    #     return None
+                content[content.index(line)] = indent + ' '.join(splits) + '\n'
 
     def _is_external(self, module):
         for name in self._target_names:
@@ -390,9 +366,11 @@ class ModuleGraph(object):
                 if self._is_external(module_name):
                     return None
                 self._module_cache[(imp_name, extrapath)] = module_name
-                if module_name not in self._modules:
-                    file = imp_filename.split(os.path.sep)[-1]
-                    self._queue.put(file, os.path.dirname(full_path))
+                file = imp_filename.split(os.path.sep)[-1]
+                file_path = os.path.dirname(full_path)
+                if (module_name not in self._modules and
+                        not self._queue.in_queue(file, file_path)):
+                    self._queue.put(file, file_path)
                 return module_name
 
         for path in self._paths:
@@ -404,9 +382,11 @@ class ModuleGraph(object):
                     if self._is_external(module_name):
                         return None
                     self._module_cache[(imp_name, extrapath)] = module_name
-                    if module_name not in self._modules:
-                        file = imp_filename.split(os.path.sep)[-1]
-                        self._queue.put(file, os.path.dirname(full_path))
+                    file = imp_filename.split(os.path.sep)[-1]
+                    file_path = os.path.dirname(full_path)
+                    if (module_name not in self._modules and
+                            not self._queue.in_queue(file, file_path)):
+                        self._queue.put(file, file_path)
                     return module_name
 
         return None
