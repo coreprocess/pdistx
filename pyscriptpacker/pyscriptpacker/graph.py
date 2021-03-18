@@ -175,20 +175,20 @@ class ModuleGraph(object):
             content = file_data.readlines()
 
             # Rewritten the relative import (if any)
-            for info in import_infos:
-                if (file_name, info.name) in self._relative_cache:
-                    # Find the line contains import name
-                    line = self._find_relative_import(content, info.name)
-                    if line:
-                        # Find relative name and absolute name in the line
-                        dots_idx = line.find(' ' + ('.' * info.level)) + 1
-                        relative = utils.find_word_at(line, dots_idx)
-                        absolute = self._relative_cache[(file_name, info.name)]
-                        # change the line to absolute imports
-                        new_line = line.replace(relative, absolute)
-                        # Rewritten the line
-                        content[content.index(line)] = content[content.index(
-                            line)].replace(line, new_line)
+            # for info in import_infos:
+            #     if (file_name, info.name) in self._relative_cache:
+            #         # Find the line contains import name
+            #         line = self._find_relative_import(content, info.name)
+            #         if line:
+            #             # Find relative name and absolute name in the line
+            #             dots_idx = line.find(' ' + ('.' * info.level)) + 1
+            #             relative = utils.find_word_at(line, dots_idx)
+            #             absolute = self._relative_cache[(file_name, info.name)]
+            #             # change the line to absolute imports
+            #             new_line = line.replace(relative, absolute)
+            #             # Rewritten the line
+            #             content[content.index(line)] = content[content.index(
+            #                 line)].replace(line, new_line)
 
             self._rewrite_to_relative_scope(content, module_name)
             content = ''.join(content)
@@ -277,23 +277,23 @@ class ModuleGraph(object):
 
                 content[content.index(line)] = ' '.join(splits) + '\n'
 
-    def _find_relative_import(self, file_content, imp_name):
-        key_words = ['import', 'from']
-        imp_elements = imp_name.split('.')
+    # def _find_relative_import(self, file_content, imp_name):
+    #     key_words = ['import', 'from']
+    #     imp_elements = imp_name.split('.')
 
-        for line in file_content:
-            if 'import' in line and 'from' in line:
-                splits = line.split()
-                content = [
-                    word.replace('.', '')
-                    for word in splits
-                    if word not in key_words
-                ]
-                result = all(map(lambda x, y: x == y, content, imp_elements))
-                if result:
-                    return line
+    #     for line in file_content:
+    #         if 'import' in line and 'from' in line:
+    #             splits = line.split()
+    #             content = [
+    #                 word.replace('.', '')
+    #                 for word in splits
+    #                 if word not in key_words
+    #             ]
+    #             result = all(map(lambda x, y: x == y, content, imp_elements))
+    #             if result:
+    #                 return line
 
-        return None
+    #     return None
 
     def _is_external(self, module):
         for name in self._target_names:
