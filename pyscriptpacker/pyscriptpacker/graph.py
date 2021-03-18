@@ -137,14 +137,14 @@ class ModuleGraph(object):
 
     def parse_paths(self, paths, project_names):
         self._target_names = project_names
+        self._paths.extend(paths)
 
         module_paths = []
         # Find the paths contain the desired modules.
         for module_name in project_names:
-            for path in paths:
+            for path in self._paths:
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
-                    self._paths.append(path)
                     module_paths.append(full_path)
                     break
 
@@ -171,6 +171,9 @@ class ModuleGraph(object):
             self._find_module_of_import(imp.name, imp.level, file_path,
                                         file_name) for imp in import_infos
         }
+        # NOTE(Nghia Lam): Remove standard python libraries (which has returned
+        # None when finding module.)
+        module.imports = {imp for imp in module.imports if imp is not None}
 
         # Read code content
         with open(os.path.join(file_path, file_name), 'r') as file_data:
@@ -189,10 +192,6 @@ class ModuleGraph(object):
                 content += '")))\n'
 
             module.content = content
-
-        # NOTE(Nghia Lam): Remove standard python libraries (which has returned
-        # None when finding module.)
-        module.imports = {imp for imp in module.imports if imp is not None}
 
         self._modules[module_name] = module
 
@@ -324,7 +323,7 @@ class ModuleGraph(object):
         if not self._is_target(imp_name):
             return None
         if imp_name.endswith('.*'):
-            return imp_name[:-2]
+            imp_name = imp_name[:-2]
 
         name = imp_name
 
@@ -359,6 +358,11 @@ class ModuleGraph(object):
 
             # Get everything before the last "."
             name = name.rpartition('.')[0]
+            # Last fallback check for importing from __init__.py of root module
+            if not name and imp_level and imp_level == 1:
+                result = self._get_name_via_module('__init__', file_path)
+                if result:
+                    break
 
         # Find full path module
         if imp_level and imp_level >= 1 and ((file_name, imp_name)
@@ -366,7 +370,7 @@ class ModuleGraph(object):
             self._relative_cache[(file_name,
                                   imp_name)] = result if result else imp_name
 
-        return result if result else None
+        return result
 
     def _get_name_via_module(self, imp_name, extrapath=None):
         imp_filename = imp_name.replace('.', os.path.sep) + '.py'
