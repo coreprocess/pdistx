@@ -267,7 +267,20 @@ class ModuleGraph(object):
                                 lvl += 1
                             else:
                                 lvl += module.count('.')
-                            splits[splits.index(word)] = dot * lvl + word
+
+                            if 'from' in line:
+                                splits[splits.index(word)] = dot * lvl + word
+                            else:
+                                prefix = ''
+                                suffix = word
+                                if '.' in word:
+                                    prefix = '.'.join(word.split('.')[:-1])
+                                    suffix = word.split('.')[-1]
+
+                                splits.insert(0, 'from')
+                                splits.insert(1, dot * lvl + prefix)
+                                splits[splits.index(word)] = suffix
+                            break
 
                 content[content.index(line)] = indent + ' '.join(splits) + '\n'
 
