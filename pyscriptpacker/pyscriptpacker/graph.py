@@ -1,12 +1,10 @@
 import os
 import sys
-import bz2
-import base64
 
-from queue import Queue
 from toposort import toposort_flatten
 
 from .data import ImportFinder
+from .file import FileQueue, FileReader
 
 
 class Module(object):
@@ -17,9 +15,8 @@ class Module(object):
     def __init__(self, module_name, file_name):
         self.module_name = module_name
         self.file_name = file_name
-        self.is_package = False
+        self.is_package = (file_name == '__init__.py')
         self.content = ''
-        self.imports = set()
 
     def to_dict(self):
         data = {
@@ -40,32 +37,6 @@ class Module(object):
         )
 
 
-class ModuleFileQueue(object):
-    '''
-    A simple file queue system.
-    '''
-
-    def __init__(self):
-        self._files = Queue()
-        self._roots = Queue()
-
-    def put(self, file, root):
-        self._files.put(file)
-        self._roots.put(root)
-
-    def get_file(self):
-        return self._files.get()
-
-    def get_root(self):
-        return self._roots.get()
-
-    def empty(self):
-        return self._files.empty()
-
-    def in_queue(self, file, root):
-        return file in self._files.queue and root in self._roots.queue
-
-
 class ModuleGraph(object):
     '''
     Module graph tree used for detect import dependencies and order them
@@ -75,7 +46,7 @@ class ModuleGraph(object):
     def __init__(self, is_compress=False):
         self._compress = is_compress
 
-        self._queue = ModuleFileQueue()
+        self._queue = FileQueue()
         self._target_names = []
         self._modules = {}
         self._module_cache = {}
@@ -88,7 +59,7 @@ class ModuleGraph(object):
         Generate the dependency datas store in the module graph.
 
         Returns:
-            list: Datas with dependency orders build by 
+            list: Datas with dependency orders.
         '''
         data = []
 
@@ -145,37 +116,39 @@ class ModuleGraph(object):
 
         module_name = self._find_full_module_name(file_name, file_path)
         module = Module(module_name, file_name)
-        module.is_package = (file_name == '__init__.py')
+
         # Get import dependencies
         import_infos = ImportFinder(file_name, file_path).list_imports
         module.imports = {
             self._find_module_of_import(imp.name, imp.level, file_path,
                                         file_name) for imp in import_infos
         }
-        # NOTE(Nghia Lam): Remove standard python libraries (which has returned
-        # None when finding module.)
+        # Remove un-supported libraries (which returned None)
         module.imports = {imp for imp in module.imports if imp is not None}
 
         # Read code content
-        with open(os.path.join(file_path, file_name), 'r') as file_data:
-            content = file_data.readlines()
-            self._rewrite_to_relative_scope(content, module_name)
-            content = ''.join(content)
-
-            if self._compress:
-                # Compress the source code using bz2
-                # Reference: https://github.com/liftoff/pyminifier/blob/087ea7b0c8c964f1f907c3f350f5ce281798db86/pyminifier/compression.py#L51-L76
-                compressed_source = bz2.compress(content.encode('utf-8'))
-                content = 'import bz2, base64\n'
-                content += 'exec(bz2.decompress(base64.b64decode("'
-                content += base64.b64encode(compressed_source).decode('utf-8')
-                content += '")))\n'
-
-            module.content = content
+        module.content = FileReader().get_file_content(
+            file_name,
+            file_path,
+            module_name,
+            self._target_names,
+            self._compress,
+        )
 
         self._modules[module_name] = module
 
     def _find_full_module_name(self, file_name, file_path):
+        '''
+        Find the full module name of the given file name by looking through its
+        parent directories to see if those are also a python module.
+
+        Args:
+            file_name (string): File name to search for full module.
+            file_path (string): The path which contains the given file.
+
+        Returns:
+            string: Full module name
+        '''
         module_name = []
 
         elements = file_path.split(os.path.sep)
@@ -198,53 +171,11 @@ class ModuleGraph(object):
                 name = name.split(os.path.sep)[-1]
             module_name += '.' + name
 
-        # Check for external libraries
+        # Remove 'site-packages' path of external libraries
         if 'site-packages' in module_name:
             module_name = module_name.rpartition('site-packages.')[2]
 
         return module_name
-
-    def _rewrite_to_relative_scope(self, content, module):
-        dot = '.'
-
-        for line in content:
-            if 'import' in line:
-                # Find indentation
-                indent = ''
-                for char in line:
-                    if char == ' ':
-                        indent += char
-                    else:
-                        break
-                # Parsing throught line
-                splits = line.split()
-                for name in self._target_names:
-                    for word in splits:
-                        scope = word
-                        if '.' in word:
-                            # Always get the highest scope
-                            scope = word.split('.')[0]
-                        if name == scope:
-                            lvl = 1
-                            if module.count('.') == 0:
-                                lvl += 1
-                            else:
-                                lvl += module.count('.')
-
-                            if 'from' in line:
-                                splits[splits.index(word)] = dot * lvl + word
-                            else:
-                                prefix = ''
-                                suffix = word
-                                if '.' in word:
-                                    prefix = '.'.join(word.split('.')[:-1])
-                                    suffix = word.split('.')[-1]
-                                splits.insert(0, 'from')
-                                splits.insert(1, dot * lvl + prefix)
-                                splits[splits.index(word)] = suffix
-                            break
-
-                content[content.index(line)] = indent + ' '.join(splits) + '\n'
 
     def _is_external(self, module):
         for name in self._target_names:
@@ -262,12 +193,8 @@ class ModuleGraph(object):
         if '.' in module:
             module = module.split('.')[0]
 
-        # NOTE(Nghia Lam): Check if the target name is in the module name.
         if not self._is_external(module):
             return True
-
-        # NOTE(Nghia Lam): Check if the module name is belong to a Python
-        # standard libraries or other external libraries.
         if module in sys.builtin_module_names or module in sys.modules:
             return False
 
