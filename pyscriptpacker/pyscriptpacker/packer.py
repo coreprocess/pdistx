@@ -22,6 +22,7 @@ def pack(project_names, output, directories, compress):
     module_graph = graph.ModuleGraph(compress)
     module_graph.parse_paths(directories, project_names)
 
+    # Add all modules from module graph data
     main_script += '_modules = ['
     for data in module_graph.generate_data():
         main_script += '{\n'
@@ -31,6 +32,7 @@ def pack(project_names, output, directories, compress):
         main_script += '},\n'
     main_script += ']\n'
 
+    # Get the setup code to execute the module data
     main_script += utils.get_setup_code()
 
     write_output(output, main_script)

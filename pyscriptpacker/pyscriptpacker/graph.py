@@ -1,63 +1,12 @@
 import os
 import sys
-import ast
 import bz2
 import base64
 
 from queue import Queue
 from toposort import toposort_flatten
 
-
-class ImportInfo(object):
-    '''
-    A record of a name and the location of the import statement.
-    '''
-
-    def __init__(self, name, level):
-        self.name = name
-        self.level = level
-
-    def __repr__(self):
-        # Used for debugging (print to console)
-        return '%s(%r, %r)' % (
-            self.__class__.__name__,
-            self.name,
-            self.level,
-        )
-
-
-class ImportFinder(ast.NodeVisitor):
-    '''
-    This class is implemented as a NodeVisitor which will collect all the
-    import dependencies when visit a new file as root.
-
-    Reference: https://www.mattlayman.com/blog/2018/decipher-python-ast/
-    '''
-
-    def __init__(self, file_name, file_path):
-        self._imports = []
-
-        with open(os.path.join(file_path, file_name)) as f:
-            root = ast.parse(f.read(), file_name)
-        self.visit(root)
-
-    @property
-    def list_imports(self):
-        return self._imports
-
-    def visit_Import(self, node):
-        for alias in node.names:
-            self._process(alias.name, None)
-
-    def visit_ImportFrom(self, node):
-        for alias in node.names:
-            fullname = '%s.%s' % (node.module,
-                                  alias.name) if node.module else alias.name
-            self._process(fullname, node.level)
-
-    def _process(self, full_name, level):
-        info = ImportInfo(full_name, level)
-        self._imports.append(info)
+from .data import ImportFinder
 
 
 class Module(object):
@@ -81,7 +30,6 @@ class Module(object):
         return data
 
     def __repr__(self):
-        # Used for debugging (print to console)
         return '<%s: %s>:\nFile: %r\nPackage: %r\nCode: %r\nImport: %r\n' % (
             self.__class__.__name__,
             self.module_name,
@@ -127,15 +75,47 @@ class ModuleGraph(object):
     def __init__(self, is_compress=False):
         self._compress = is_compress
 
+        self._queue = ModuleFileQueue()
+        self._target_names = []
         self._modules = {}
         self._module_cache = {}
-        self._target_names = []
         self._relative_cache = {}
-        self._queue = ModuleFileQueue()
 
         self._paths = list(sys.path)
 
+    def generate_data(self):
+        '''
+        Generate the dependency datas store in the module graph.
+
+        Returns:
+            list: Datas with dependency orders build by 
+        '''
+        data = []
+
+        list_dependencies = self._build_dependency_data()
+        for module in list_dependencies:
+            data.append(self._modules[module].to_dict())
+
+        return data
+
+    def _build_dependency_data(self):
+        data = {}
+        for key in self._modules:
+            data[key] = self._modules[key].imports
+
+        return toposort_flatten(data)
+
     def parse_paths(self, paths, project_names):
+        '''
+        Parsing through the paths, trying to find the correct modules for
+        packing based on the given arguments.
+
+        Args:
+            paths (list of string): User input library paths for finding the
+                modules.
+            project_names (list of string): User's main module target for
+                packing.
+        '''
         self._target_names = project_names
         self._paths.extend(paths)
 
@@ -155,6 +135,7 @@ class ModuleGraph(object):
                     if file.endswith('.py'):
                         self._queue.put(file, root)
 
+        # Parsing all the files in queue
         while not self._queue.empty():
             self._parse_file(self._queue.get_file(), self._queue.get_root())
 
@@ -178,7 +159,6 @@ class ModuleGraph(object):
         # Read code content
         with open(os.path.join(file_path, file_name), 'r') as file_data:
             content = file_data.readlines()
-
             self._rewrite_to_relative_scope(content, module_name)
             content = ''.join(content)
 
@@ -194,22 +174,6 @@ class ModuleGraph(object):
             module.content = content
 
         self._modules[module_name] = module
-
-    def generate_data(self):
-        data = []
-
-        list_dependencies = self._build_dependency_data()
-        for module in list_dependencies:
-            data.append(self._modules[module].to_dict())
-
-        return data
-
-    def _build_dependency_data(self):
-        data = {}
-        for key in self._modules:
-            data[key] = self._modules[key].imports
-
-        return toposort_flatten(data)
 
     def _find_full_module_name(self, file_name, file_path):
         module_name = []
