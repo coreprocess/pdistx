@@ -15,11 +15,11 @@ def write_output(output_path, texts):
         sys.exit(1)
 
 
-def pack(project_names, output, directories, is_minify):
+def pack(project_names, output, directories, compress):
     main_script = ''
 
     # Init module graph to build the dependencies data.
-    module_graph = graph.ModuleGraph(is_minify)
+    module_graph = graph.ModuleGraph(compress)
     module_graph.parse_paths(directories, project_names)
 
     main_script += '_modules = ['

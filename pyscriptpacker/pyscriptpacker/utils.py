@@ -27,10 +27,3 @@ for module in _modules:
 
 def get_setup_code():
     return setup_code
-
-
-def find_word_at(string, index):
-    '''
-    Get the full word at the given index inside string.
-    '''
-    return string[:index].split(' ')[-1] + string[index:].split(' ')[0]

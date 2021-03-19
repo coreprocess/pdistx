@@ -38,7 +38,7 @@ def _assertion(condition, error_message):
         sys.exit(1)
 
 
-def _parse_input(project_names, output, directories, is_minify):
+def _parse_input(project_names, output, directories, compress):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
@@ -57,7 +57,7 @@ def _parse_input(project_names, output, directories, is_minify):
         len(directories) >= 1,
         'Error: pyscriptpacker needs directories contains the projects.')
 
-    packer.pack(project_names, output, directories, is_minify)
+    packer.pack(project_names, output, directories, compress)
 
 
 def main():
@@ -102,12 +102,12 @@ def main():
         'Optional Flags',
     )
     sub_opts.add_option(
-        '-m',
-        '--minifier',
+        '-c',
+        '--compress',
         action='store_true',
-        dest='minifier',
+        dest='compress',
         default=False,
-        help='minify and compress the Python source.',
+        help='compress the Python source.',
     )
     parser.add_option_group(sub_opts)
 
@@ -117,7 +117,7 @@ def main():
         options.project_names,
         options.output,
         args[0:],
-        options.minifier,
+        options.compress,
     )
 
 

@@ -124,8 +124,8 @@ class ModuleGraph(object):
     if necessary.
     '''
 
-    def __init__(self, is_minify=True):
-        self._is_minify = is_minify
+    def __init__(self, is_compress=False):
+        self._compress = is_compress
 
         self._modules = {}
         self._module_cache = {}
@@ -182,7 +182,7 @@ class ModuleGraph(object):
             self._rewrite_to_relative_scope(content, module_name)
             content = ''.join(content)
 
-            if self._is_minify:
+            if self._compress:
                 # Compress the source code using bz2
                 # Reference: https://github.com/liftoff/pyminifier/blob/087ea7b0c8c964f1f907c3f350f5ce281798db86/pyminifier/compression.py#L51-L76
                 compressed_source = bz2.compress(content.encode('utf-8'))
@@ -275,7 +275,6 @@ class ModuleGraph(object):
                                 if '.' in word:
                                     prefix = '.'.join(word.split('.')[:-1])
                                     suffix = word.split('.')[-1]
-
                                 splits.insert(0, 'from')
                                 splits.insert(1, dot * lvl + prefix)
                                 splits[splits.index(word)] = suffix
