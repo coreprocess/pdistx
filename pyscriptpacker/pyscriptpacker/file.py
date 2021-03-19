@@ -44,6 +44,23 @@ class FileReader(object):
                          target_names,
                          compress=True,
                          rewrite_import=True):
+        '''
+        Get the content of the given file with options for compressing the
+        source and rewrite the import into relative scope.
+
+        Args:
+            file_name (string): The file for getting the content.
+            file_path (string): The path to the file.
+            module_name (string): The module name content the file.
+            target_names (string): All the target module name for rewriting.
+            compress (bool, optional): Whether the source will be compressed
+                using bz2. Defaults to True.
+            rewrite_import (bool, optional): Whether the imports will be
+                rewritten to relative scope. Defaults to True.
+
+        Returns:
+            string: The whole content of the given file.
+        '''
         content = ''
         with open(os.path.join(file_path, file_name), 'r') as file_data:
             content = file_data.readlines()
@@ -56,7 +73,6 @@ class FileReader(object):
             content = ''.join(content)
 
             if compress:
-                # Compress the source code using bz2
                 # Reference: https://github.com/liftoff/pyminifier/blob/087ea7b0c8c964f1f907c3f350f5ce281798db86/pyminifier/compression.py#L51-L76
                 compressed_source = bz2.compress(content.encode('utf-8'))
                 content = 'import bz2, base64\n'

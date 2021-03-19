@@ -50,7 +50,6 @@ class ModuleGraph(object):
         self._target_names = []
         self._modules = {}
         self._module_cache = {}
-        self._relative_cache = {}
 
         self._paths = list(sys.path)
 
@@ -120,8 +119,8 @@ class ModuleGraph(object):
         # Get import dependencies
         import_infos = ImportFinder(file_name, file_path).list_imports
         module.imports = {
-            self._find_module_of_import(imp.name, imp.level, file_path,
-                                        file_name) for imp in import_infos
+            self._find_module_of_import(info.name, info.level, file_path)
+            for info in import_infos
         }
         # Remove un-supported libraries (which returned None)
         module.imports = {imp for imp in module.imports if imp is not None}
@@ -203,7 +202,7 @@ class ModuleGraph(object):
         # scope. (relative # import)
         return True
 
-    def _find_module_of_import(self, imp_name, imp_level, file_path, file_name):
+    def _find_module_of_import(self, imp_name, imp_level, file_path):
         '''
         Given a fully qualified name, find what module contains it.
 
@@ -231,11 +230,7 @@ class ModuleGraph(object):
             extrapath = os.path.sep.join(extrapath)
 
         if (imp_name, extrapath) in self._module_cache:
-            module = self._module_cache[(imp_name, extrapath)]
-            if (imp_level and imp_level >= 1 and
-                ((file_name, imp_name) not in self._relative_cache)):
-                self._relative_cache[(file_name, imp_name)] = module
-            return module
+            return self._module_cache[(imp_name, extrapath)]
 
         result = None
         while name:
@@ -245,20 +240,15 @@ class ModuleGraph(object):
             result = self._get_name_via_package(name, extrapath)
             if result:
                 break
-
             # Get everything before the last "."
             name = name.rpartition('.')[0]
-            # Last fallback check for importing from __init__.py of root module
+
+            # Last fallback check when user try to import values from
+            # __init__.py of root module
             if not name and imp_level and imp_level == 1:
                 result = self._get_name_via_module('__init__', file_path)
                 if result:
                     break
-
-        # Find full path module
-        if imp_level and imp_level >= 1 and ((file_name, imp_name)
-                                             not in self._relative_cache):
-            self._relative_cache[(file_name,
-                                  imp_name)] = result if result else imp_name
 
         return result
 
