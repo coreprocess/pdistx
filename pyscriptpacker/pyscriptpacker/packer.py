@@ -31,21 +31,19 @@ def zip_output(output_path):
 
 
 def pack(project_names, output, directories, compressed, zipped):
-    main_script = ''
-
     # Init module graph to build the dependencies data.
     module_graph = graph.ModuleGraph(compressed)
     module_graph.parse_paths(directories, project_names)
 
     # Add all modules from module graph data
-    main_script += '_modules = ['
+    main_script = '_virtual_modules = {\n'
     for data in module_graph.generate_data():
-        main_script += '{\n'
-        main_script += '"name": ' + '__name__ + ".' + data.get('name') + '" ,'
-        main_script += '"is_package": ' + str(data.get('is_package')) + ','
-        main_script += '"code": ' + repr(data.get('code')) + ','
-        main_script += '},\n'
-    main_script += ']\n'
+        main_script += '\t__name__ + ".' + data.get('name') + '": {\n'
+        main_script += '\t\t"is_package": ' + str(
+            data.get('is_package')) + ',\n'
+        main_script += '\t\t"code": ' + repr(data.get('code')) + ',\n'
+        main_script += '\t},\n'
+    main_script += '}\n\n'
 
     # Get the setup code to execute the module data
     main_script += utils.get_setup_code()
