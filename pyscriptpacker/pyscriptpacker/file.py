@@ -31,9 +31,9 @@ class FileQueue(object):
         return file in self._files.queue and root in self._roots.queue
 
 
-class FileReader(object):
+class FileHandler(object):
     '''
-    A file reader class for getting all the content from a file.
+    A file handler class for getting all the content from a file.
     '''
 
     @classmethod
@@ -96,7 +96,7 @@ class FileReader(object):
                         indent += char
                     else:
                         break
-                # Parsing throught line
+                # Parsing throught the line
                 splits = line.split()
                 for name in target_names:
                     for word in splits:

@@ -4,7 +4,7 @@ import sys
 from toposort import toposort_flatten
 
 from .data import ImportFinder
-from .file import FileQueue, FileReader
+from .file import FileQueue, FileHandler
 
 
 class Module(object):
@@ -113,7 +113,7 @@ class ModuleGraph(object):
         if file_path not in self._paths:
             self._paths.append(file_path)
 
-        module_name = self._find_full_module_name(file_name, file_path)
+        module_name = self._find_module_of_file(file_name, file_path)
         module = Module(module_name, file_name)
 
         # Get import dependencies
@@ -126,7 +126,7 @@ class ModuleGraph(object):
         module.imports = {imp for imp in module.imports if imp is not None}
 
         # Read code content
-        module.content = FileReader().get_file_content(
+        module.content = FileHandler().get_file_content(
             file_name,
             file_path,
             module_name,
@@ -136,7 +136,7 @@ class ModuleGraph(object):
 
         self._modules[module_name] = module
 
-    def _find_full_module_name(self, file_name, file_path):
+    def _find_module_of_file(self, file_name, file_path):
         '''
         Find the full module name of the given file name by looking through its
         parent directories to see if those are also a python module.
@@ -178,7 +178,7 @@ class ModuleGraph(object):
 
     def _find_module_of_import(self, imp_name, imp_level, file_path):
         '''
-        Given a fully qualified name, find what module contains it.
+        Given a fully qualified import name, find what module contains it.
 
         Return:
             string: Full module name of the given import information.
@@ -191,12 +191,10 @@ class ModuleGraph(object):
 
         extrapath = None
         if imp_level and imp_level > 1:
-            # NOTE(Nghia Lam): Find the trailling extra path if the level is >
-            # 1 for relative import.
-            # from .. import something
-            # --> The path must go up one
-            # from ... import something
-            # --> The path must go up two
+            # NOTE: Find the trailling extra path if the level is > 1 for
+            # relative import. Eg:
+            #   from .. import something --> The path must go up one
+            #   from ... import something --> The path must go up two
             extrapath = file_path.split(os.path.sep)
             imp_level -= 1
             extrapath = extrapath[0:-imp_level]
@@ -208,10 +206,12 @@ class ModuleGraph(object):
         result = None
         name = imp_name
         while name:
-            result = self._get_name_via_module(name, extrapath)
+            # Trying getting the full module by going through
+            # all the import level.
+            result = self._try_get_module(name, extrapath)
             if result:
                 break
-            result = self._get_name_via_package(name, extrapath)
+            result = self._try_get_package(name, extrapath)
             if result:
                 break
             # Get everything before the last "."
@@ -220,50 +220,48 @@ class ModuleGraph(object):
             # Last fallback check when user try to import values from
             # __init__.py of root module
             if not name and imp_level and imp_level == 1:
-                result = self._get_name_via_module('__init__', file_path)
+                result = self._try_get_module('__init__', file_path)
                 if result:
                     break
 
         return result
 
-    def _get_name_via_module(self, imp_name, extrapath=None):
+    def _try_get_package(self, imp_name, extrapath=None):
+        return self._try_get_module(imp_name + '.__init__', extrapath)
+
+    def _try_get_module(self, imp_name, extrapath=None):
         imp_filename = imp_name.replace('.', os.path.sep) + '.py'
 
         if extrapath:
             full_path = os.path.join(extrapath, imp_filename)
             if os.path.exists(full_path):
-                module_name = self._find_full_module_name(
-                    imp_filename, os.path.dirname(full_path))
-                if not self._is_user_input_module(module_name):
-                    return None
-                self._module_cache[(imp_name, extrapath)] = module_name
-                file = imp_filename.split(os.path.sep)[-1]
-                file_path = os.path.dirname(full_path)
-                if (module_name not in self._modules
-                        and not self._queue.in_queue(file, file_path)):
-                    self._queue.put(file, file_path)
-                return module_name
+                return self._try_find_module(imp_filename,
+                                             os.path.dirname(full_path),
+                                             extrapath)
 
         for path in self._paths:
             if not os.path.isfile(path):
                 full_path = os.path.join(path, imp_filename)
                 if os.path.exists(full_path):
-                    module_name = self._find_full_module_name(
-                        imp_filename, os.path.dirname(full_path))
-                    if not self._is_user_input_module(module_name):
-                        return None
-                    self._module_cache[(imp_name, extrapath)] = module_name
-                    file = imp_filename.split(os.path.sep)[-1]
-                    file_path = os.path.dirname(full_path)
-                    if (module_name not in self._modules
-                            and not self._queue.in_queue(file, file_path)):
-                        self._queue.put(file, file_path)
-                    return module_name
+                    return self._try_find_module(imp_filename,
+                                                 os.path.dirname(full_path),
+                                                 extrapath)
 
         return None
 
-    def _get_name_via_package(self, imp_name, extrapath=None):
-        return self._get_name_via_module(imp_name + '.__init__', extrapath)
+    def _try_find_module(self, file_name, file_path, extrapath=None):
+        module_name = self._find_module_of_file(file_name, file_path)
+        if not self._is_user_input_module(module_name):
+            return None
+
+        # Add to cache
+        self._module_cache[(file_name, extrapath)] = module_name
+
+        file = file_name.split(os.path.sep)[-1]
+        if (module_name not in self._modules
+                and not self._queue.in_queue(file, file_path)):
+            self._queue.put(file, file_path)
+        return module_name
 
     def _is_user_input_module(self, module):
         for name in self._target_names:
