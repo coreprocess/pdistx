@@ -38,7 +38,7 @@ def _assertion(condition, error_message):
         sys.exit(1)
 
 
-def _parse_input(project_names, output, directories, compress):
+def _parse_input(project_names, output, directories, compressed, zipped):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
@@ -57,7 +57,7 @@ def _parse_input(project_names, output, directories, compress):
         len(directories) >= 1,
         'Error: pyscriptpacker needs directories contains the projects.')
 
-    packer.pack(project_names, output, directories, compress)
+    packer.pack(project_names, output, directories, compressed, zipped)
 
 
 def main():
@@ -102,10 +102,18 @@ def main():
         'Optional Flags',
     )
     sub_opts.add_option(
+        '-z',
+        '--zip',
+        action='store_true',
+        dest='zipped',
+        default=False,
+        help='zip the output into a zip file.',
+    )
+    sub_opts.add_option(
         '-c',
         '--compress',
         action='store_true',
-        dest='compress',
+        dest='compressed',
         default=False,
         help='compress the Python source.',
     )
@@ -117,7 +125,8 @@ def main():
         options.project_names,
         options.output,
         args[0:],
-        options.compress,
+        options.compressed,
+        options.zipped,
     )
 
 

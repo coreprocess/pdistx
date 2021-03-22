@@ -1,4 +1,6 @@
+import os
 import sys
+import zipfile
 
 from pyscriptpacker import utils
 from pyscriptpacker import graph
@@ -15,11 +17,24 @@ def write_output(output_path, texts):
         sys.exit(1)
 
 
-def pack(project_names, output, directories, compress):
+def zip_output(output_path):
+    zip_name = output_path.split('.')[0] + '.zip'
+    zip_obj = zipfile.ZipFile(zip_name, 'w')
+    if os.path.isdir(output_path):
+        for folder, _, file_names in os.walk(output_path):
+            for file_name in file_names:
+                file_path = os.path.join(folder, file_name)
+                zip_obj.write(file_path, file_name)
+    else:
+        zip_obj.write(output_path, os.path.basename(output_path))
+    zip_obj.close()
+
+
+def pack(project_names, output, directories, compressed, zipped):
     main_script = ''
 
     # Init module graph to build the dependencies data.
-    module_graph = graph.ModuleGraph(compress)
+    module_graph = graph.ModuleGraph(compressed)
     module_graph.parse_paths(directories, project_names)
 
     # Add all modules from module graph data
@@ -36,3 +51,6 @@ def pack(project_names, output, directories, compress):
     main_script += utils.get_setup_code()
 
     write_output(output, main_script)
+
+    if zipped:
+        zip_output(output)
