@@ -32,5 +32,6 @@ Options:
                         specify the output packed file name (and location)
 
   Optional Flags:
+    -z, --zip           zip the output into a zip file.
     -c, --compress      compress the Python source.
 ```

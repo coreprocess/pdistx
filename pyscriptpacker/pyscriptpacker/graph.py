@@ -126,7 +126,7 @@ class ModuleGraph(object):
         module.imports = {imp for imp in module.imports if imp is not None}
 
         # Read code content
-        module.content = FileHandler().get_file_content(
+        module.content = FileHandler.get_file_content(
             file_name,
             file_path,
             module_name,
