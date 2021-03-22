@@ -62,13 +62,13 @@ class ModuleGraph(object):
         '''
         data = []
 
-        list_dependencies = self._build_dependency_data()
+        list_dependencies = self._build_dependency_orders()
         for module in list_dependencies:
             data.append(self._modules[module].to_dict())
 
         return data
 
-    def _build_dependency_data(self):
+    def _build_dependency_orders(self):
         data = {}
         for key in self._modules:
             data[key] = self._modules[key].imports
@@ -176,32 +176,6 @@ class ModuleGraph(object):
 
         return module_name
 
-    def _is_external(self, module):
-        for name in self._target_names:
-            if name in module:
-                return False
-        return True
-
-    def _is_target(self, module):
-        '''
-        Check if the given module is a build target of the user.
-
-        Returns:
-            bool: Whether the module is a build target of the user.
-        '''
-        if '.' in module:
-            module = module.split('.')[0]
-
-        if not self._is_external(module):
-            return True
-        if module in sys.builtin_module_names or module in sys.modules:
-            return False
-
-        # NOTE(Nghia Lam): Not found the module name everywhere so the program
-        # will try to pack it to see if this given module name is not at full
-        # scope. (relative # import)
-        return True
-
     def _find_module_of_import(self, imp_name, imp_level, file_path):
         '''
         Given a fully qualified name, find what module contains it.
@@ -211,10 +185,9 @@ class ModuleGraph(object):
         '''
         if not self._is_target(imp_name):
             return None
+
         if imp_name.endswith('.*'):
             imp_name = imp_name[:-2]
-
-        name = imp_name
 
         extrapath = None
         if imp_level and imp_level > 1:
@@ -233,6 +206,7 @@ class ModuleGraph(object):
             return self._module_cache[(imp_name, extrapath)]
 
         result = None
+        name = imp_name
         while name:
             result = self._get_name_via_module(name, extrapath)
             if result:
@@ -260,13 +234,13 @@ class ModuleGraph(object):
             if os.path.exists(full_path):
                 module_name = self._find_full_module_name(
                     imp_filename, os.path.dirname(full_path))
-                if self._is_external(module_name):
+                if not self._is_user_input_module(module_name):
                     return None
                 self._module_cache[(imp_name, extrapath)] = module_name
                 file = imp_filename.split(os.path.sep)[-1]
                 file_path = os.path.dirname(full_path)
-                if (module_name not in self._modules and
-                        not self._queue.in_queue(file, file_path)):
+                if (module_name not in self._modules
+                        and not self._queue.in_queue(file, file_path)):
                     self._queue.put(file, file_path)
                 return module_name
 
@@ -276,13 +250,13 @@ class ModuleGraph(object):
                 if os.path.exists(full_path):
                     module_name = self._find_full_module_name(
                         imp_filename, os.path.dirname(full_path))
-                    if self._is_external(module_name):
+                    if not self._is_user_input_module(module_name):
                         return None
                     self._module_cache[(imp_name, extrapath)] = module_name
                     file = imp_filename.split(os.path.sep)[-1]
                     file_path = os.path.dirname(full_path)
-                    if (module_name not in self._modules and
-                            not self._queue.in_queue(file, file_path)):
+                    if (module_name not in self._modules
+                            and not self._queue.in_queue(file, file_path)):
                         self._queue.put(file, file_path)
                     return module_name
 
@@ -290,3 +264,26 @@ class ModuleGraph(object):
 
     def _get_name_via_package(self, imp_name, extrapath=None):
         return self._get_name_via_module(imp_name + '.__init__', extrapath)
+
+    def _is_user_input_module(self, module):
+        for name in self._target_names:
+            if name in module:
+                return True
+        return False
+
+    def _is_target(self, module):
+        '''
+        Check if the given module is a build target of the user.
+
+        Returns:
+            bool: Whether the module is a build target of the user.
+        '''
+        if '.' in module:
+            module = module.split('.')[0]
+
+        if (not self._is_user_input_module(module)
+                or (module in sys.builtin_module_names)
+                or (module in sys.modules)):
+            return False
+
+        return True
