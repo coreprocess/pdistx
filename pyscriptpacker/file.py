@@ -1,6 +1,7 @@
 import os
 import bz2
 import base64
+import re
 
 from queue import Queue
 
@@ -63,14 +64,7 @@ class FileHandler(object):
         '''
         content = ''
         with open(os.path.join(file_path, file_name), 'r') as file_data:
-            content = file_data.readlines()
-            if rewrite_import:
-                cls._rewrite_to_relative_scope(
-                    content,
-                    module_name,
-                    target_names,
-                )
-            content = ''.join(content)
+            content = file_data.read()
 
             if compress:
                 # Reference: https://github.com/liftoff/pyminifier/blob/087ea7b0c8c964f1f907c3f350f5ce281798db86/pyminifier/compression.py#L51-L76
@@ -80,41 +74,3 @@ class FileHandler(object):
                 content += base64.b64encode(compressed_source).decode('utf-8')
                 content += '")))\n'
         return content
-
-    @classmethod
-    def _rewrite_to_relative_scope(cls, content, module, target_names):
-        dot_lvl = 1
-        dot_lvl += 1 if (module.count('.') == 0) else module.count('.')
-        dot = '.' * dot_lvl
-
-        for line in content:
-            if 'import' in line:
-                # Find indentation
-                indent = ''
-                for char in line:
-                    if char == ' ':
-                        indent += char
-                    else:
-                        break
-                # Parsing throught the line
-                splits = line.split()
-                for name in target_names:
-                    for word in splits:
-                        scope = word
-                        if '.' in word:
-                            scope = word.split('.')[0]  # Get the highest scope
-                        if name == scope:
-                            if 'from' in line:
-                                splits[splits.index(word)] = dot + word
-                            else:
-                                prefix = ''
-                                suffix = word
-                                if '.' in word:
-                                    prefix = '.'.join(word.split('.')[:-1])
-                                    suffix = word.split('.')[-1]
-                                splits.insert(0, 'from')
-                                splits.insert(1, dot + prefix)
-                                splits[splits.index(word)] = suffix
-                            break
-
-                content[content.index(line)] = indent + ' '.join(splits) + '\n'
