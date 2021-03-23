@@ -99,6 +99,7 @@ class FileHandler(object):
                 r')(\..*|[^\S\r\n]+.*|)$',
                 r'\g<1>' + 'packed_098f6bcd4621d373cade4e832627b4f6_' + name +
                 r'\g<3>; ' + name + ' = ' +
+                'packed_098f6bcd4621d373cade4e832627b4f6_' + name + '; del ' +
                 'packed_098f6bcd4621d373cade4e832627b4f6_' + name,
                 content,
                 flags=re.M,
