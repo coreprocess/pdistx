@@ -8,7 +8,6 @@ try:
 except ImportError:
     import builtins
 
-
 _bundle_hash = hashlib.sha256(
     json.dumps(_virtual_modules, sort_keys=True).encode('utf-8')).hexdigest()
 
@@ -19,14 +18,14 @@ def _try_load_module(name, local_name, parent_name, override):
 
     # qualified names
     qf_name = '{{}}.{{}}'.format(__name__, name)
-    qf_parent_name = '{{}}.{{}}'.format(__name__,
-                                        parent_name) if parent_name else None
+    qf_parent_name = '{{}}.{{}}'.format(
+        __name__, parent_name) if parent_name else __name__
 
     # check if module is not loaded already and available
     virtual_module = _virtual_modules.get(name, None)
     if not virtual_module or qf_name in sys.modules:
         return
-    if not override and parent_name:
+    if not override:
         if hasattr(sys.modules[qf_parent_name], local_name):
             return
 
@@ -46,7 +45,7 @@ def _try_load_module(name, local_name, parent_name, override):
     module = sys.modules[qf_name] = imp.new_module(qf_name)
     setattr(module, '__packer_bundle_hash__', _bundle_hash)
     module.__name__ = qf_name
-    if virtual_module['is_package'] or not parent_name:
+    if virtual_module['is_package']:
         module.__package__ = qf_name
         module.__path__ = ['{{}}/{{}}'.format(_bundle_hash, name)]
     else:
@@ -56,11 +55,11 @@ def _try_load_module(name, local_name, parent_name, override):
     exec(virtual_module['code'], module.__dict__)
 
     # link to parent
-    if parent_name:
-        setattr(sys.modules[qf_parent_name], local_name, module)
+    setattr(sys.modules[qf_parent_name], local_name, module)
 
 
 _orig_import = builtins.__import__
+
 
 def __import__(name, globals=None, locals=None, fromlist=(), level=0):
 
@@ -79,7 +78,8 @@ def __import__(name, globals=None, locals=None, fromlist=(), level=0):
     load_path += name.split('.') if name else []
 
     # handle hoisted requests with rebased path
-    if '.'.join(load_path).startswith(__name__ + '.'):
+    if '.'.join(load_path) == __name__ or '.'.join(load_path).startswith(
+            __name__ + '.'):
         load_path = load_path[len(__name__.split('.')):]
 
     # skip load requests not originating from the bundle
@@ -87,7 +87,7 @@ def __import__(name, globals=None, locals=None, fromlist=(), level=0):
         load_path = None
 
     # try to load and return module if load path is given
-    if load_path:
+    if load_path is not None:
 
         # load modules along the path
         for depth in range(len(load_path)):
@@ -99,36 +99,37 @@ def __import__(name, globals=None, locals=None, fromlist=(), level=0):
             )
 
         # load modules referenced by the from list
-        if load_path and fromlist:
+        if fromlist:
             for from_item in fromlist:
                 if from_item == '*':
                     continue
                 _try_load_module(
                     '.'.join(load_path + [from_item]),
                     from_item,
-                    '.'.join(load_path),
+                    '.'.join(load_path) if load_path else None,
                     False,
                 )
 
         # try to return the requested module
-        if not fromlist:
-            return_name = '{{}}.{{}}'.format(__name__, load_path[0])
-        else:
-            return_name = '{{}}.{{}}'.format(__name__, '.'.join(load_path))
+        if load_path:
+            if not fromlist:
+                return_name = '{{}}.{{}}'.format(__name__, load_path[0])
+            else:
+                return_name = '{{}}.{{}}'.format(__name__, '.'.join(load_path))
 
-        if return_name in sys.modules:
-            return sys.modules[return_name]
+            if return_name in sys.modules:
+                return sys.modules[return_name]
 
     # delegate import to original routine
     return _orig_import(name, globals, locals, fromlist, level)
 
-builtins.__import__ = __import__
 
+builtins.__import__ = __import__
 
 if sys.version_info >= (3, 0):
 
-    # If we import this library here in Python 2.x, the library can no longer
-    # be imported by other modules. Weird behaviour, we would like to avoid.
+    # If we import this library in Python 2.x, the library can no longer be
+    # imported by other modules. Weird behaviour, we would like to avoid.
     # So keep this import here!
     import importlib
 
@@ -155,7 +156,8 @@ if sys.version_info >= (3, 0):
                 load_path = load_path[len(__name__.split('.')):]
 
             # skip load requests not originating from the bundle
-            elif not path or not path[0].startswith('{{}}/'.format(_bundle_hash)):
+            elif not path or not path[0].startswith(
+                    '{{}}/'.format(_bundle_hash)):
                 return None
 
             # load module
