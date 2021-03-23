@@ -46,8 +46,7 @@ def pack(project_names, output, directories, compressed, zipped):
     main_script += '}\n\n'
 
     # Get the setup code to execute the module data
-    main_script += utils.get_setup_code(
-        'packed_098f6bcd4621d373cade4e832627b4f6')
+    main_script += utils.get_setup_code()
 
     write_output(output, main_script)
 
