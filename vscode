@@ -1,10 +1,9 @@
 #!/bin/bash
 
-ROOT_PATH="$(realpath "$( dirname "${BASH_SOURCE[0]}" )")"
-
 # strict mode
 set -euo pipefail
 IFS=$'\n\t'
 
 # run code
+ROOT_PATH="$(realpath "$( dirname "${BASH_SOURCE[0]}" )")"
 code "--extensions-dir=$ROOT_PATH/.vscode-env/extensions" "--user-data-dir=$ROOT_PATH/.vscode-env/userdata" "$@"

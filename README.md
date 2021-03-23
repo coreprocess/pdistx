@@ -1,22 +1,16 @@
-PyScriptPacker 2.0
----
+## PyScriptPacker 2.0
 
-Convert Python packages into a single file which make the distribution of your projects become easier. It can also provide a security layer to your code by parsing all the sources and compress them.
+Convert Python packages into a single file which makes the distribution of your projects easier. It can also provide a security layer to your code by parsing all the sources and compress them.
 
 ## Installation
 
-We will eventually move this to pypi for better package management. For the time being, we can clone this repository and install it manually.
-
-```shell
-git clone https://github.com/3dninjas/pyscriptpacker2.git pyscriptpacker
-cd pyscriptpacker
-python -m pip install --upgrade pip
-pip install -e pyscriptpacker
+```sh
+pip install pyscriptpacker
 ```
 
 ## Usage
 
-When you install pyscriptpacker it should automatically add a 'pyscriptpacker' Command Line Interface to your `$PATH`. This CLI has a number of command line arguments:
+When you install PyScriptPacker, the `pyscriptpacker` will be added to your `$PATH`.
 
 ```
 Usage: pyscriptpacker [options] -n <project>[,extra_projects,...] -o <output> <directory> [extra_dirs...]
