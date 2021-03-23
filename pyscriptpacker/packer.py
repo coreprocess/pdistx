@@ -38,11 +38,11 @@ def pack(project_names, output, directories, compressed, zipped):
     # Add all modules from module graph data
     main_script = '_virtual_modules = {\n'
     for data in module_graph.generate_data():
-        main_script += '\t"' + data.get('name') + '": {\n'
-        main_script += '\t\t"is_package": ' + str(
+        main_script += '    "' + data.get('name') + '": {\n'
+        main_script += '        "is_package": ' + str(
             data.get('is_package')) + ',\n'
-        main_script += '\t\t"code": ' + repr(data.get('code')) + ',\n'
-        main_script += '\t},\n'
+        main_script += '        "code": ' + repr(data.get('code')) + ',\n'
+        main_script += '    },\n'
     main_script += '}\n\n'
 
     # Get the setup code to execute the module data
