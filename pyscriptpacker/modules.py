@@ -1,5 +1,4 @@
 import os
-import sys
 import bz2
 import base64
 
@@ -77,10 +76,10 @@ class ModuleManager(object):
                     module_paths.append(full_path)
                     break
                 # Fallback for single file library like 'toposort'
-                full_path_file += '.py'
+                full_path_file = full_path + '.py'
                 if os.path.exists(full_path_file):
-                    module_paths.append(full_path)
-                    break
+                    self._parse_file(os.path.basename(full_path_file),
+                                     os.path.dirname(full_path_file))
 
         # Find all the python file in the module paths
         for module_path in module_paths:
