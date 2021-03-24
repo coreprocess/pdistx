@@ -51,6 +51,18 @@ def _try_load_module(name, local_name, parent_name, override):
     else:
         module.__package__ = sys.modules[qf_parent_name].__package__
 
+    # import hook for modules using __import__ the wrong way
+    def _packer_import_hook(name, globals=None, locals=None, fromlist=(), level=0):
+        return _packer_import(
+            name,
+            globals if globals is not None else module.__dict__,
+            locals if locals is not None else module.__dict__,
+            fromlist,
+            level,
+        )
+
+    setattr(module, '__import__', _packer_import_hook)
+
     # inject code
     exec(virtual_module['code'], module.__dict__)
 
@@ -58,10 +70,20 @@ def _try_load_module(name, local_name, parent_name, override):
     setattr(sys.modules[qf_parent_name], local_name, module)
 
 
+def _try_get_module_all_list(name):
+    qf_name = '{{}}.{{}}'.format(__name__, name) if name else __name__
+    module = sys.modules.get(qf_name, None)
+    if module:
+        all_list = getattr(module, '__all__', None)
+        if all_list:
+            return all_list
+    return []
+
+
 _orig_import = builtins.__import__
 
 
-def __import__(name, globals=None, locals=None, fromlist=(), level=0):
+def _packer_import(name, globals=None, locals=None, fromlist=(), level=0):
 
     globals_or_empty = globals if globals else {{}}
 
@@ -102,7 +124,16 @@ def __import__(name, globals=None, locals=None, fromlist=(), level=0):
         if fromlist:
             for from_item in fromlist:
                 if from_item == '*':
-                    continue
+                    all_list = _try_get_module_all_list(
+                        '.'.join(load_path) if load_path else None,
+                    )
+                    for all_item in all_list:   
+                        _try_load_module(
+                            '.'.join(load_path + [all_item]),
+                            all_item,
+                            '.'.join(load_path) if load_path else None,
+                            False,
+                        )
                 _try_load_module(
                     '.'.join(load_path + [from_item]),
                     from_item,
@@ -124,7 +155,8 @@ def __import__(name, globals=None, locals=None, fromlist=(), level=0):
     return _orig_import(name, globals, locals, fromlist, level)
 
 
-builtins.__import__ = __import__
+builtins.__import__ = _packer_import
+
 
 if sys.version_info >= (3, 0):
 
@@ -133,7 +165,7 @@ if sys.version_info >= (3, 0):
     # So keep this import here!
     import importlib
 
-    class PackerLoader(importlib.abc.Loader):
+    class _PackerLoader(importlib.abc.Loader):
 
         def __init__(self, code):
             self.code = code
@@ -144,7 +176,7 @@ if sys.version_info >= (3, 0):
         def exec_module(self, module):
             exec(self.code, module.__dict__)
 
-    class PackerMetaFinder(importlib.abc.MetaPathFinder):
+    class _PackerMetaFinder(importlib.abc.MetaPathFinder):
 
         def find_spec(self, fullname, path, target=None):
 
@@ -169,11 +201,11 @@ if sys.version_info >= (3, 0):
             # create spec
             return importlib.util.spec_from_loader(
                 virtual_name,
-                loader=PackerLoader(virtual_module['code']),
+                loader=_PackerLoader(virtual_module['code']),
                 is_package=True if virtual_module['is_package'] else None,
             )
 
-    sys.meta_path.insert(0, PackerMetaFinder())
+    sys.meta_path.insert(0, _PackerMetaFinder())
 '''
 
 
