@@ -1,10 +1,10 @@
 import os
 import sys
+import bz2
+import base64
 
-from .file import FileHandler
 
-
-class Module(object):
+class ModuleInfo(object):
     '''
     Node in a module dependency graph.
     '''
@@ -33,16 +33,14 @@ class Module(object):
         )
 
 
-class ModuleGraph(object):
+class ModuleManager(object):
     '''
-    Module graph tree used for detect import dependencies and order them
-    if necessary.
+    Module manager for manage all the module found while parsing through the
+    required paths.
     '''
 
     def __init__(self, is_compress=False):
         self._compress = is_compress
-
-        self._paths = list(sys.path)
         self._modules = {}
 
     def generate_data(self):
@@ -70,14 +68,17 @@ class ModuleGraph(object):
             project_names (list of string): User's main module target for
                 packing.
         '''
-        self._paths.extend(paths)
-
         module_paths = []
         # Find the paths contain the desired modules.
         for module_name in project_names:
-            for path in self._paths:
+            for path in paths:
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
+                    module_paths.append(full_path)
+                    break
+                # Fallback for single file library like 'toposort'
+                full_path_file += '.py'
+                if os.path.exists(full_path_file):
                     module_paths.append(full_path)
                     break
 
@@ -89,14 +90,11 @@ class ModuleGraph(object):
                         self._parse_file(file, root)
 
     def _parse_file(self, file_name, file_path):
-        if file_path not in self._paths:
-            self._paths.append(file_path)
-
         module_name = self._find_module_of_file(file_name, file_path)
-        module = Module(module_name, file_name)
+        module = ModuleInfo(module_name, file_name)
 
         # Read code content
-        module.content = FileHandler.get_file_content(
+        module.content = self._get_file_content(
             file_name,
             file_path,
             self._compress,
@@ -143,3 +141,29 @@ class ModuleGraph(object):
             module_name = module_name.rpartition('site-packages.')[2]
 
         return module_name
+
+    def _get_file_content(self, file_name, file_path, compress=True):
+        '''
+        Get the content of given file with options for compressing the source.
+
+        Args:
+            file_name (string): The file for getting the content.
+            file_path (string): The path to the file.
+            compress (bool, optional): Whether the source will be compressed
+                using bz2. Defaults to True.
+
+        Returns:
+            string: The whole content of the given file.
+        '''
+        content = ''
+        with open(os.path.join(file_path, file_name), 'r') as file_data:
+            content = file_data.read()
+
+            if compress:
+                # Reference: https://github.com/liftoff/pyminifier/blob/087ea7b0c8c964f1f907c3f350f5ce281798db86/pyminifier/compression.py#L51-L76
+                compressed_source = bz2.compress(content.encode('utf-8'))
+                content = 'import bz2, base64\n'
+                content += 'exec(bz2.decompress(base64.b64decode("'
+                content += base64.b64encode(compressed_source).decode('utf-8')
+                content += '")))\n'
+        return content
