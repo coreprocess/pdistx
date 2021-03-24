@@ -1,7 +1,6 @@
 import os
 import bz2
 import base64
-import re
 
 from queue import Queue
 
@@ -38,13 +37,7 @@ class FileHandler(object):
     '''
 
     @classmethod
-    def get_file_content(cls,
-                         file_name,
-                         file_path,
-                         module_name,
-                         target_names,
-                         compress=True,
-                         rewrite_import=True):
+    def get_file_content(cls, file_name, file_path, compress=True):
         '''
         Get the content of the given file with options for compressing the
         source and rewrite the import into relative scope.
