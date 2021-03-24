@@ -67,29 +67,29 @@ class ModuleManager(object):
             project_names (list of string): User's main module target for
                 packing.
         '''
-        module_paths = []
         # Find the paths contain the desired modules.
         for module_name in project_names:
             for path in paths:
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
-                    module_paths.append(full_path)
+                    # Find all the python file in the module paths
+                    for file_path, _, files in os.walk(full_path):
+                        for file in files:
+                            if file.endswith('.py'):
+                                self._parse_file(file, file_path, path)
                     break
+
                 # Fallback for single file library like 'toposort'
                 full_path_file = full_path + '.py'
                 if os.path.exists(full_path_file):
-                    self._parse_file(os.path.basename(full_path_file),
-                                     os.path.dirname(full_path_file))
+                    self._parse_file(
+                        os.path.basename(full_path_file),
+                        os.path.dirname(full_path_file),
+                        path,
+                    )
 
-        # Find all the python file in the module paths
-        for module_path in module_paths:
-            for root, _, files in os.walk(module_path):
-                for file in files:
-                    if file.endswith('.py'):
-                        self._parse_file(file, root)
-
-    def _parse_file(self, file_name, file_path):
-        module_name = self._find_module_of_file(file_name, file_path)
+    def _parse_file(self, file_name, file_path, root):
+        module_name = self._find_module_of_file(file_name, file_path, root)
         module = ModuleInfo(module_name, file_name)
 
         # Read code content
@@ -101,31 +101,21 @@ class ModuleManager(object):
 
         self._modules[module_name] = module
 
-    def _find_module_of_file(self, file_name, file_path):
+    def _find_module_of_file(self, file_name, file_path, root):
         '''
-        Find the full module name of the given file name by looking through its
-        parent directories to see if those are also a python module.
+        Find the full module name of the given file name.
 
         Args:
             file_name (string): File name to search for full module.
             file_path (string): The path which contains the given file.
+            root (string): The root path user input.
 
         Returns:
             string: Full module name
         '''
-        module_name = []
-
-        elements = file_path.split(os.path.sep)
-        while elements:
-            module_name.append(elements.pop())
-            # Stop when there's any python file
-            contain_python = any(
-                '.py' in file and file != 'setup.py'
-                for file in os.listdir(os.path.sep.join(elements)))
-            if not contain_python:
-                break
-        module_name.reverse()
-        module_name = '.'.join(module_name)
+        module_name = os.path.relpath(file_path, root)
+        module_name = module_name.replace(os.path.sep, '.')
+        module_name = None if module_name == '.' else module_name
 
         # Add file name to module name for scope management
         if '__init__.py' not in file_name:
@@ -133,11 +123,7 @@ class ModuleManager(object):
             # Remove trailing namespace
             if os.path.sep in name:
                 name = name.split(os.path.sep)[-1]
-            module_name += '.' + name
-
-        # Remove 'site-packages' path of external libraries
-        if 'site-packages' in module_name:
-            module_name = module_name.rpartition('site-packages.')[2]
+            module_name = '.'.join([module_name, name]) if module_name else name
 
         return module_name
 
