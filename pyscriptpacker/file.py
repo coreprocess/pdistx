@@ -2,34 +2,6 @@ import os
 import bz2
 import base64
 
-from queue import Queue
-
-
-class FileQueue(object):
-    '''
-    A simple file queue system.
-    '''
-
-    def __init__(self):
-        self._files = Queue()
-        self._roots = Queue()
-
-    def put(self, file, root):
-        self._files.put(file)
-        self._roots.put(root)
-
-    def get_file(self):
-        return self._files.get()
-
-    def get_root(self):
-        return self._roots.get()
-
-    def empty(self):
-        return self._files.empty()
-
-    def in_queue(self, file, root):
-        return file in self._files.queue and root in self._roots.queue
-
 
 class FileHandler(object):
     '''
@@ -39,18 +11,13 @@ class FileHandler(object):
     @classmethod
     def get_file_content(cls, file_name, file_path, compress=True):
         '''
-        Get the content of the given file with options for compressing the
-        source and rewrite the import into relative scope.
+        Get the content of given file with options for compressing the source.
 
         Args:
             file_name (string): The file for getting the content.
             file_path (string): The path to the file.
-            module_name (string): The module name content the file.
-            target_names (string): All the target module name for rewriting.
             compress (bool, optional): Whether the source will be compressed
                 using bz2. Defaults to True.
-            rewrite_import (bool, optional): Whether the imports will be
-                rewritten to relative scope. Defaults to True.
 
         Returns:
             string: The whole content of the given file.

@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .file import FileQueue, FileHandler
+from .file import FileHandler
 
 
 class Module(object):
@@ -42,12 +42,8 @@ class ModuleGraph(object):
     def __init__(self, is_compress=False):
         self._compress = is_compress
 
-        self._queue = FileQueue()
-        self._target_names = []
-        self._modules = {}
-        self._module_cache = {}
-
         self._paths = list(sys.path)
+        self._modules = {}
 
     def generate_data(self):
         '''
@@ -58,7 +54,7 @@ class ModuleGraph(object):
         '''
         data = []
 
-        for module in self._modules[module]:
+        for module in self._modules:
             data.append(self._modules[module].to_dict())
 
         return data
@@ -74,7 +70,6 @@ class ModuleGraph(object):
             project_names (list of string): User's main module target for
                 packing.
         '''
-        self._target_names = project_names
         self._paths.extend(paths)
 
         module_paths = []
@@ -91,11 +86,7 @@ class ModuleGraph(object):
             for root, _, files in os.walk(module_path):
                 for file in files:
                     if file.endswith('.py'):
-                        self._queue.put(file, root)
-
-        # Parsing all the files in queue
-        while not self._queue.empty():
-            self._parse_file(self._queue.get_file(), self._queue.get_root())
+                        self._parse_file(file, root)
 
     def _parse_file(self, file_name, file_path):
         if file_path not in self._paths:
