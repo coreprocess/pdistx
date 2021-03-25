@@ -5,7 +5,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # project root
-cd "$(realpath "$( dirname "${BASH_SOURCE[0]}" )")"
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # pack libraries
 mkdir -p ./packed
