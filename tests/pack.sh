@@ -8,8 +8,6 @@ IFS=$'\n\t'
 cd "$(realpath "$( dirname "${BASH_SOURCE[0]}" )")"
 
 # install packer
-python3 -m venv ./env
-source ./env/bin/activate
 pip install --upgrade ../
 
 # pack libraries

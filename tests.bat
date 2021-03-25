@@ -2,9 +2,7 @@
 
 call ./tests/pack.bat
 
-REM Pytest installation
+REM pytest
 pip install --upgrade pytest
-
-REM Running test cases
 pytest tests
 
