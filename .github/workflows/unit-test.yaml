@@ -30,10 +30,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Unit testing (Unix)
-      if: ${{ startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac') }}
-      run: |
-        sh tests.sh
-    - name: Unit testing (Windows)
-      if: ${{ startsWith(matrix.os, 'windows') }}
-      run: |
-        tests.bat
+        if: ${{ startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac') }}
+        run: |
+          sh tests.sh
+      - name: Unit testing (Windows)
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: |
+          tests.bat
