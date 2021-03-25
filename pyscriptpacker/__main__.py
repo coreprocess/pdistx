@@ -18,10 +18,10 @@ def _parse_input(module_names, search_paths, output, compressed):
     with the given command line options.
 
     Args:
-        module_names (list): [description]
-        search_paths (list): [description]
-        output (string): [description]
-        compressed (bool): [description]
+        module_names (list): List of module names the users want to pack.
+        search_paths (list): List of path to search for modules.
+        output (string): The output of the packed file.
+        compressed (bool): Option for compressing the sources.
     '''
     _assertion(
         output,
@@ -33,12 +33,7 @@ def _parse_input(module_names, search_paths, output, compressed):
         len(search_paths) >= 1,
         'Error: pyscriptpacker needs search paths contains the projects.')
 
-    packer.pack(
-        module_names,
-        search_paths,
-        output,
-        compressed,
-    )
+    packer.pack(module_names, search_paths, output, compressed)
 
 
 def main():
@@ -63,6 +58,9 @@ def main():
     )
 
     options, args = parser.parse_args()
+    if len(args) != 3:
+        _assertion(False, 'Error: Invalid usage of pyscriptpacker.')
+
     _parse_input(
         args[0].split(','),
         args[1].split(','),

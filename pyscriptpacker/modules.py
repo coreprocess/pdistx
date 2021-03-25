@@ -40,7 +40,7 @@ class ModuleManager(object):
 
     def __init__(self, is_compress=False):
         self._compress = is_compress
-        self._modules = {}
+        self._modules = dict()
 
     def generate_data(self):
         '''
@@ -56,7 +56,7 @@ class ModuleManager(object):
 
         return data
 
-    def parse_paths(self, paths, project_names):
+    def parse_paths(self, paths, module_names):
         '''
         Parsing through the paths, trying to find the correct modules for
         packing based on the given arguments.
@@ -64,11 +64,11 @@ class ModuleManager(object):
         Args:
             paths (list of string): User input library paths for finding the
                 modules.
-            project_names (list of string): User's main module target for
+            module_names (list of string): User's main module target for
                 packing.
         '''
         # Find the paths contain the desired modules.
-        for module_name in project_names:
+        for module_name in module_names:
             for path in paths:
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
@@ -89,8 +89,8 @@ class ModuleManager(object):
                     )
 
     def _parse_file(self, file_name, file_path, root):
-        module_name = self._find_module_of_file(file_name, file_path, root)
-        module = ModuleInfo(module_name, file_name)
+        full_module_name = self._find_module_of_file(file_name, file_path, root)
+        module = ModuleInfo(full_module_name, file_name)
 
         # Read code content
         module.content = self._get_file_content(
@@ -99,7 +99,7 @@ class ModuleManager(object):
             self._compress,
         )
 
-        self._modules[module_name] = module
+        self._modules[full_module_name] = module
 
     def _find_module_of_file(self, file_name, file_path, root):
         '''
