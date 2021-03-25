@@ -12,14 +12,11 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/3dninjas/pyscriptpacker2",
     packages=setuptools.find_packages(),
-    install_requires=[
-        'toposort',
-    ],
     classifiers=[
         "Programming Language :: Python",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
     license="GPLv3",
-    python_requires='>=2.7',
+    python_requires=">=2.7",
 )
