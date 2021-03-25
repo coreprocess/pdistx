@@ -1,0 +1,29 @@
+name: Unit Tests
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    types: [opened, reopened, review_requested, ready_for_review]
+    branches:
+      - develop
+
+jobs:
+  build:
+    name: ${{ matrix.os }} Python@${{ matrix.python-version}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        python-version: [2.7, 3.9]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Unit Tests
+        run: |
+          ./tests/run.sh
