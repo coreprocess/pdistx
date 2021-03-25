@@ -2,6 +2,8 @@ print('test01')
 
 import types
 
+assert globals().get('lib1', None) is None
+
 import lib1
 
 assert isinstance(lib1, types.ModuleType)
