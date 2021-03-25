@@ -40,10 +40,9 @@ def main():
     '''
     Sets up our command line options, prints the usage/help (if warranted).
     '''
-    usage = ('%prog [options] module1,module2,... path1,path2,... output')
-    if '__main__.py' in sys.argv[0]:  # python -m pyscriptpacker
-        usage = ('pyscriptpacker [options] module1,module2,... ' +
-                 'path1,path2,... output')
+    usage = (
+        'python -m pyscriptpacker [options] module1,module2,... path1,path2,... output'
+    )
 
     parser = OptionParser(usage=usage, version=__version__)
     parser.disable_interspersed_args()

@@ -13,19 +13,10 @@ pip install pyscriptpacker
 When you install PyScriptPacker, the `pyscriptpacker` will be added to your `$PATH`.
 
 ```
-Usage: pyscriptpacker [options] -n <project>[,extra_projects,...] -o <output> <directory> [extra_dirs...]
+Usage: pyscriptpacker [options] module1,module2,... path1,path2,... output
 
 Options:
-  --version             show program's version number and exit
-  -h, --help            show this help message and exit
-
-  Primary Flags:
-    -n <project names>, --names=<project names>
-                        specify the projects will be packed.
-    -o <output>, --output=<output>
-                        specify the output packed file name (and location)
-
-  Optional Flags:
-    -z, --zip           zip the output into a zip file.
-    -c, --compress      compress the Python source.
+  --version       show program's version number and exit
+  -h, --help      show this help message and exit
+  -c, --compress  compress the Python source.
 ```
