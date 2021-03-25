@@ -6,3 +6,5 @@
 
 /.vscode-env
 /envs
+/tests/env
+/tests/packed
