@@ -15,10 +15,10 @@ def write_output(output_path, texts):
         sys.exit(1)
 
 
-def pack(project_names, output, directories, compressed):
+def pack(module_names, search_paths, output, compressed):
     # Init module graph to build the dependencies data.
     module_manager = ModuleManager(compressed)
-    module_manager.parse_paths(directories, project_names)
+    module_manager.parse_paths(search_paths, module_names)
 
     # Add all modules from module graph data
     main_script = '_virtual_modules = {\n'
