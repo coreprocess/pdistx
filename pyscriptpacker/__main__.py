@@ -93,9 +93,8 @@ def main():
     )
 
     options, args = parser.parse_args()
-    if len(args) != 3:
-        _assertion(False, 'Error: Invalid usage of pyscriptpacker.')
 
+    _assertion(len(args) == 3, 'Error: Invalid usage of pyscriptpacker.')
     _parse_input(
         args[0].split(','),
         args[1].split(','),

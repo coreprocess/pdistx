@@ -6,6 +6,21 @@ from pyscriptpacker import utils
 from pyscriptpacker.modules import ModuleManager
 
 
+def _retrieve_file_paths(directory):
+    '''
+    Return all file paths of the particular directory.
+
+    Args:
+        directory (string): The directory to query all the file paths.
+    '''
+    file_paths = []
+    for root, _, files in os.walk(directory):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            file_paths.append(file_path)
+    return file_paths
+
+
 def zip_output(output, zipped_list):
     output_dir = os.path.dirname(output)
     output_name = os.path.basename(output)
@@ -13,7 +28,12 @@ def zip_output(output, zipped_list):
     with zipfile.ZipFile(os.path.join(output_dir, zip_name), 'w') as zip_file:
         zip_file.write(output, output_name)
         if 'None' not in zipped_list:
-            pass
+            for zipped in zipped_list:
+                if os.path.isdir(zipped):
+                    for file in _retrieve_file_paths(zipped):
+                        zip_file.write(file)
+                else:
+                    zip_file.write(zipped)
 
 
 def write_output(output_path, texts):
