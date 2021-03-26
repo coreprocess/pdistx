@@ -52,7 +52,11 @@ def _try_load_module(name, local_name, parent_name, override):
         module.__package__ = sys.modules[qf_parent_name].__package__
 
     # import hook for modules using __import__ the wrong way
-    def _packer_import_hook(name, globals=None, locals=None, fromlist=(), level=0):
+    def _packer_import_hook(name,
+                            globals=None,
+                            locals=None,
+                            fromlist=(),
+                            level=0):
         return _packer_import(
             name,
             globals if globals is not None else module.__dict__,
@@ -64,7 +68,10 @@ def _try_load_module(name, local_name, parent_name, override):
     setattr(module, '__import__', _packer_import_hook)
 
     # inject code
-    exec(virtual_module['code'], module.__dict__)
+    code = compile(
+        virtual_module['code'], __file__ + '/' + name.replace('.', '/') +
+        ('/__init__' if virtual_module['is_package'] else '') + '.py', 'exec')
+    exec(code, module.__dict__)
 
     # link to parent
     setattr(sys.modules[qf_parent_name], local_name, module)
@@ -125,9 +132,8 @@ def _packer_import(name, globals=None, locals=None, fromlist=(), level=0):
             for from_item in fromlist:
                 if from_item == '*':
                     all_list = _try_get_module_all_list(
-                        '.'.join(load_path) if load_path else None,
-                    )
-                    for all_item in all_list:   
+                        '.'.join(load_path) if load_path else None,)
+                    for all_item in all_list:
                         _try_load_module(
                             '.'.join(load_path + [all_item]),
                             all_item,
@@ -157,7 +163,6 @@ def _packer_import(name, globals=None, locals=None, fromlist=(), level=0):
 
 builtins.__import__ = _packer_import
 
-
 if sys.version_info >= (3, 0):
 
     # If we import this library in Python 2.x, the library can no longer be
@@ -167,14 +172,19 @@ if sys.version_info >= (3, 0):
 
     class _PackerLoader(importlib.abc.Loader):
 
-        def __init__(self, code):
+        def __init__(self, code, is_package):
             self.code = code
+            self.is_package = is_package
 
         def create_module(self, spec):
             return None
 
         def exec_module(self, module):
-            exec(self.code, module.__dict__)
+            code = compile(
+                self.code, __file__ + '/' + name.replace('.', '/') +
+                ('/__init__' if virtual_module['is_package'] else '') + '.py',
+                'exec')
+            exec(code, module.__dict__)
 
     class _PackerMetaFinder(importlib.abc.MetaPathFinder):
 
@@ -201,7 +211,8 @@ if sys.version_info >= (3, 0):
             # create spec
             return importlib.util.spec_from_loader(
                 virtual_name,
-                loader=_PackerLoader(virtual_module['code']),
+                loader=_PackerLoader(virtual_module['code'],
+                                     virtual_module['is_package']),
                 is_package=True if virtual_module['is_package'] else None,
             )
 
