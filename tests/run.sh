@@ -8,11 +8,11 @@ IFS=$'\n\t'
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # setup venv
-python -m pip install virtualenv --user
-virtualenv ./env
+python -m pip install --upgrade --user virtualenv
+python -m virtualenv ./env
 source ./env/bin/activate
 python -m pip install --upgrade pip
-pip install --upgrade pytest pytest-forked
+python -m pip install --upgrade pytest pytest-forked
 
 # pack and test
 ./pack.sh
