@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import zipfile
 
 from pyscriptpacker import utils
@@ -48,6 +49,8 @@ def write_output(output_path, texts):
 
 
 def pack(module_names, search_paths, output, compressed, zipped_list):
+    logging.info('Packing all the requested modules ...')
+
     # Init module graph to build the dependencies data.
     module_manager = ModuleManager(compressed)
     module_manager.parse_paths(search_paths, module_names)
@@ -65,7 +68,13 @@ def pack(module_names, search_paths, output, compressed, zipped_list):
     # Get the setup code to execute the module data
     main_script += utils.get_setup_code()
 
+    logging.info('Writing output ...')
     write_output(output, main_script)
+    logging.info('Finish packing requested modules.')
 
     if zipped_list != []:
+        logging.info('Start zipping output file and additional files/folders..')
         zip_output(output, zipped_list)
+        logging.info('Finish zipping all requested files/folders.')
+
+    logging.info('DONE!!')

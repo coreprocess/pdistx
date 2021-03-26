@@ -1,4 +1,5 @@
 import sys
+import logging
 from optparse import OptionParser, Option
 
 from pyscriptpacker import __version__
@@ -31,8 +32,8 @@ class _CLIExtendOption(Option):
 
 def _assertion(condition, error_message):
     if not condition:
-        sys.stdout.write(error_message +
-                         '\nPlease see --help for more information.')
+        logging.error('%s Please see --help for more information.',
+                      error_message)
         sys.exit(1)
 
 
@@ -51,13 +52,13 @@ def _parse_input(module_names, search_paths, output, compressed, zipped_list):
     '''
     _assertion(
         output,
-        'Error: pyscriptpacker needs the user specify the desired output file.')
+        'pyscriptpacker needs the user specify the desired output file.')
     _assertion(
         len(module_names) >= 1,
-        'Error: pyscriptpacker needs at least one module name.')
+        'pyscriptpacker needs at least one module name.')
     _assertion(
         len(search_paths) >= 1,
-        'Error: pyscriptpacker needs search paths contains the projects.')
+        'pyscriptpacker needs search paths contains the projects.')
 
     packer.pack(module_names, search_paths, output, compressed, zipped_list)
 
@@ -66,6 +67,11 @@ def main():
     '''
     Sets up our command line options, prints the usage/help (if warranted).
     '''
+    # Logging initialization
+    logging.basicConfig(level=logging.INFO,
+                        format='[PyscriptPacker] %(levelname)s: %(message)s')
+
+    # CLI
     usage = ('python -m pyscriptpacker [options] ' +
              'module1,module2,... path1,path2,... output')
 
@@ -94,7 +100,7 @@ def main():
 
     options, args = parser.parse_args()
 
-    _assertion(len(args) == 3, 'Error: Invalid usage of pyscriptpacker.')
+    _assertion(len(args) == 3, 'Invalid usage of pyscriptpacker.')
     _parse_input(
         args[0].split(','),
         args[1].split(','),
