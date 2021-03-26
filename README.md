@@ -16,7 +16,16 @@ When you install PyScriptPacker, the `pyscriptpacker` will be added to your `$PA
 Usage: pyscriptpacker [options] module1,module2,... path1,path2,... output
 
 Options:
-  --version       show program's version number and exit
-  -h, --help      show this help message and exit
-  -c, --compress  compress the Python source.
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -c, --compress        compress the Python source.
+  --zr=FILEs,FOLDERs,..
+                        zip the output and the specified files/folders to the
+                        root of the zip file. User can provide None if only
+                        the output is  needed to be zipped.
+  --za=FILEs,FOLDERs,..
+                        zip the output and the specified files/folders to the
+                        zip file but maintain all the structures. User can
+                        provide None if only the output is needed to be
+                        zipped.
 ```

@@ -88,7 +88,7 @@ def main():
     logging.error = CallCounted(logging.error)
 
     # CLI
-    usage = ('python -m pyscriptpacker [options] ' +
+    usage = ('pyscriptpacker [options] ' +
              'module1,module2,... path1,path2,... output')
 
     parser = OptionParser(option_class=_CLIExtendOption,
