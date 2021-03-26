@@ -1,6 +1,7 @@
 import os
 import bz2
 import base64
+import logging
 
 
 class ModuleInfo(object):
@@ -69,6 +70,7 @@ class ModuleManager(object):
         '''
         # Find the paths contain the desired modules.
         for module_name in module_names:
+            found = False
             for path in paths:
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
@@ -77,6 +79,7 @@ class ModuleManager(object):
                         for file in files:
                             if file.endswith('.py'):
                                 self._parse_file(file, file_path, path)
+                    found = True
                     break
 
                 # Fallback for single file library like 'toposort'
@@ -87,7 +90,10 @@ class ModuleManager(object):
                         os.path.dirname(full_path_file),
                         path,
                     )
+                    found = True
                     break
+            if not found:
+                logging.error('Cannot find module for packing: %s', module_name)
 
     def _parse_file(self, file_name, file_path, root):
         full_module_name = self._find_module_of_file(file_name, file_path, root)

@@ -229,3 +229,17 @@ if sys.version_info >= (3, 0):
 
 def get_setup_code():
     return setup_code.format()
+
+
+class CallCounted(object):
+    '''
+    Decorator to determine number of calls for a method
+    '''
+
+    def __init__(self, method):
+        self._method = method
+        self.counter = 0
+
+    def __call__(self, *args, **kwargs):
+        self.counter += 1
+        return self._method(*args, **kwargs)

@@ -31,6 +31,10 @@ def zip_output(output, zipped_list, use_absolute):
     zip_file.write(output, output_name)
     if 'None' not in zipped_list:
         for zipped in zipped_list:
+            if not os.path.exists(zipped):
+                logging.error('Cannot find this file/folder for zipping: %s',
+                              zipped)
+                continue
             if os.path.isdir(zipped):
                 for file in _retrieve_file_paths(zipped):
                     if use_absolute:
@@ -66,8 +70,6 @@ def pack(
     zipped_relative,
     zipped_absolute,
 ):
-    logging.info('Packing all the requested modules ...')
-
     # Init module graph to build the dependencies data.
     module_manager = ModuleManager(compressed)
     module_manager.parse_paths(search_paths, module_names)
@@ -85,17 +87,12 @@ def pack(
     # Get the setup code to execute the module data
     main_script += utils.get_setup_code()
 
-    logging.info('Writing output ...')
     write_output(output, main_script)
-    logging.info('Finish packing requested modules.')
 
     if zipped_relative or zipped_absolute:
-        logging.info('Start zipping output file and additional files/folders..')
-
         zipped_list = zipped_relative if zipped_relative else zipped_absolute
         use_absolute = not zipped_relative
         zip_output(output, zipped_list, use_absolute)
 
-        logging.info('Finish zipping all requested files/folders.')
-
-    logging.info('DONE!!')
+    logging.info('Finish with %s error%s!', logging.error.counter,
+                 '' if logging.error.counter <= 1 else 's')

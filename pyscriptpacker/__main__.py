@@ -4,6 +4,7 @@ from optparse import OptionParser, Option
 
 from pyscriptpacker import __version__
 from pyscriptpacker import packer
+from pyscriptpacker.utils import CallCounted
 
 
 class _CLIExtendOption(Option):
@@ -84,6 +85,7 @@ def main():
     # Logging initialization
     logging.basicConfig(level=logging.INFO,
                         format='[PyscriptPacker] %(levelname)s: %(message)s')
+    logging.error = CallCounted(logging.error)
 
     # CLI
     usage = ('python -m pyscriptpacker [options] ' +
