@@ -15,7 +15,7 @@ def write_output(output_path, texts):
         sys.exit(1)
 
 
-def pack(module_names, search_paths, output, compressed):
+def pack(module_names, search_paths, output, compressed, zipped):
     # Init module graph to build the dependencies data.
     module_manager = ModuleManager(compressed)
     module_manager.parse_paths(search_paths, module_names)
@@ -34,3 +34,6 @@ def pack(module_names, search_paths, output, compressed):
     main_script += utils.get_setup_code()
 
     write_output(output, main_script)
+
+    if zipped != []:
+        print('zipped')

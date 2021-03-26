@@ -1,8 +1,32 @@
 import sys
-from optparse import OptionParser
+from optparse import OptionParser, Option
 
 from pyscriptpacker import __version__
 from pyscriptpacker import packer
+
+
+class _CLIExtendOption(Option):
+    '''
+    Implementation of an option class for CLI OptionParser which has an
+    action 'extend': take multiple values in a single comma-delimited string,
+    and extend an existing list with them.
+    Example:
+        --names=foo,bar --names blah --names ding,dong
+        -> ["foo", "bar", "blah", "ding", "dong"]
+    Reference:
+        https://docs.python.org/2/library/optparse.html#adding-new-actions
+    '''
+    ACTIONS = Option.ACTIONS + ('extend',)
+    STORE_ACTIONS = Option.STORE_ACTIONS + ('extend',)
+    TYPED_ACTIONS = Option.TYPED_ACTIONS + ('extend',)
+    ALWAYS_TYPED_ACTIONS = Option.ALWAYS_TYPED_ACTIONS + ('extend',)
+
+    def take_action(self, action, dest, opt, value, values, parser):
+        if action == 'extend':
+            lvalue = value.split(',')
+            values.ensure_value(dest, []).extend(lvalue)
+        else:
+            Option.take_action(self, action, dest, opt, value, values, parser)
 
 
 def _assertion(condition, error_message):
@@ -12,7 +36,7 @@ def _assertion(condition, error_message):
         sys.exit(1)
 
 
-def _parse_input(module_names, search_paths, output, compressed):
+def _parse_input(module_names, search_paths, output, compressed, zipped):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
@@ -33,18 +57,19 @@ def _parse_input(module_names, search_paths, output, compressed):
         len(search_paths) >= 1,
         'Error: pyscriptpacker needs search paths contains the projects.')
 
-    packer.pack(module_names, search_paths, output, compressed)
+    packer.pack(module_names, search_paths, output, compressed, zipped)
 
 
 def main():
     '''
     Sets up our command line options, prints the usage/help (if warranted).
     '''
-    usage = (
-        'python -m pyscriptpacker [options] module1,module2,... path1,path2,... output'
-    )
+    usage = ('python -m pyscriptpacker [options] ' +
+             'module1,module2,... path1,path2,... output')
 
-    parser = OptionParser(usage=usage, version=__version__)
+    parser = OptionParser(option_class=_CLIExtendOption,
+                          usage=usage,
+                          version=__version__)
     parser.disable_interspersed_args()
 
     parser.add_option(
@@ -54,6 +79,15 @@ def main():
         dest='compressed',
         default=False,
         help='compress the Python source.',
+    )
+    parser.add_option(
+        '-z',
+        '--zip_output',
+        action='extend',
+        dest='zipped',
+        default=[],
+        help='zip the output and the specified files/folders.',
+        metavar='<file1,folder1,...>',
     )
 
     options, args = parser.parse_args()
@@ -65,6 +99,7 @@ def main():
         args[1].split(','),
         args[2],
         options.compressed,
+        options.zipped,
     )
 
 
