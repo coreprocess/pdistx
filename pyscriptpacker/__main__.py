@@ -37,7 +37,14 @@ def _assertion(condition, error_message):
         sys.exit(1)
 
 
-def _parse_input(module_names, search_paths, output, compressed, zipped_list):
+def _parse_input(
+    module_names,
+    search_paths,
+    output,
+    compressed,
+    zipped_relative,
+    zipped_absolute,
+):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
@@ -60,7 +67,14 @@ def _parse_input(module_names, search_paths, output, compressed, zipped_list):
         len(search_paths) >= 1,
         'pyscriptpacker needs search paths contains the projects.')
 
-    packer.pack(module_names, search_paths, output, compressed, zipped_list)
+    packer.pack(
+        module_names,
+        search_paths,
+        output,
+        compressed,
+        zipped_relative,
+        zipped_absolute,
+    )
 
 
 def main():
@@ -89,24 +103,36 @@ def main():
         help='compress the Python source.',
     )
     parser.add_option(
-        '-z',
+        '--zr',
         action='extend',
-        dest='zipped_list',
+        dest='zipped_relative',
         default=[],
-        help=('zip the output and the specified files/folders. User can ' +
-              'provide None if only the output is needed to be zipped.'),
-        metavar='FILEs,FOLDERs,...',
+        help=('zip the output and the specified files/folders to the root of' +
+              ' the zip file. User can provide None if only the output is ' +
+              ' needed to be zipped.'),
+        metavar='FILEs,FOLDERs,..',
+    )
+    parser.add_option(
+        '--za',
+        action='extend',
+        dest='zipped_absolute',
+        default=[],
+        help=('zip the output and the specified files/folders to the zip' +
+              ' file but maintain all the structures. User can provide None' +
+              ' if only the output is needed to be zipped.'),
+        metavar='FILEs,FOLDERs,..',
     )
 
     options, args = parser.parse_args()
-
     _assertion(len(args) == 3, 'Invalid usage of pyscriptpacker.')
+
     _parse_input(
         args[0].split(','),
         args[1].split(','),
         args[2],
         options.compressed,
-        options.zipped_list,
+        options.zipped_relative,
+        options.zipped_absolute,
     )
 
 

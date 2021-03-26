@@ -22,19 +22,29 @@ def _retrieve_file_paths(directory):
     return file_paths
 
 
-def zip_output(output, zipped_list):
+def zip_output(output, zipped_list, use_absolute):
     output_dir = os.path.dirname(output)
     output_name = os.path.basename(output)
     zip_name = output_name.split('.')[0] + '.zip'
-    with zipfile.ZipFile(os.path.join(output_dir, zip_name), 'w') as zip_file:
-        zip_file.write(output, output_name)
-        if 'None' not in zipped_list:
-            for zipped in zipped_list:
-                if os.path.isdir(zipped):
-                    for file in _retrieve_file_paths(zipped):
+
+    zip_file = zipfile.ZipFile(os.path.join(output_dir, zip_name), 'w')
+    zip_file.write(output, output_name)
+    if 'None' not in zipped_list:
+        for zipped in zipped_list:
+            if os.path.isdir(zipped):
+                for file in _retrieve_file_paths(zipped):
+                    if use_absolute:
                         zip_file.write(file)
-                else:
+                    else:
+                        base_dir = os.path.basename(os.path.normpath(zipped))
+                        file_name = os.path.relpath(file, zipped)
+                        zip_file.write(file, os.path.join(base_dir, file_name))
+            else:
+                if use_absolute:
                     zip_file.write(zipped)
+                else:
+                    zip_file.write(zipped, os.path.basename(zipped))
+    zip_file.close()
 
 
 def write_output(output_path, texts):
@@ -48,7 +58,14 @@ def write_output(output_path, texts):
         sys.exit(1)
 
 
-def pack(module_names, search_paths, output, compressed, zipped_list):
+def pack(
+    module_names,
+    search_paths,
+    output,
+    compressed,
+    zipped_relative,
+    zipped_absolute,
+):
     logging.info('Packing all the requested modules ...')
 
     # Init module graph to build the dependencies data.
@@ -72,9 +89,13 @@ def pack(module_names, search_paths, output, compressed, zipped_list):
     write_output(output, main_script)
     logging.info('Finish packing requested modules.')
 
-    if zipped_list != []:
+    if zipped_relative or zipped_absolute:
         logging.info('Start zipping output file and additional files/folders..')
-        zip_output(output, zipped_list)
+
+        zipped_list = zipped_relative if zipped_relative else zipped_absolute
+        use_absolute = not zipped_relative
+        zip_output(output, zipped_list, use_absolute)
+
         logging.info('Finish zipping all requested files/folders.')
 
     logging.info('DONE!!')

@@ -87,6 +87,7 @@ class ModuleManager(object):
                         os.path.dirname(full_path_file),
                         path,
                     )
+                    break
 
     def _parse_file(self, file_name, file_path, root):
         full_module_name = self._find_module_of_file(file_name, file_path, root)
