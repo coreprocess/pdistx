@@ -69,8 +69,11 @@ def _try_load_module(name, local_name, parent_name, override):
 
     # inject code
     code = compile(
-        virtual_module['code'], __file__ + '/' + name.replace('.', '/') +
-        ('/__init__' if virtual_module['is_package'] else '') + '.py', 'exec')
+        virtual_module['code'],
+        __file__ + '/' + name.replace('.', '/') +
+        ('/__init__' if virtual_module['is_package'] else '') + '.py',
+        'exec',
+    )
     exec(code, module.__dict__)
 
     # link to parent
@@ -181,9 +184,11 @@ if sys.version_info >= (3, 0):
 
         def exec_module(self, module):
             code = compile(
-                self.code, __file__ + '/' + name.replace('.', '/') +
-                ('/__init__' if virtual_module['is_package'] else '') + '.py',
-                'exec')
+                self.code,
+                __file__ + '/' + name.replace('.', '/') +
+                ('/__init__' if self.is_package else '') + '.py',
+                'exec',
+            )
             exec(code, module.__dict__)
 
     class _PackerMetaFinder(importlib.abc.MetaPathFinder):
