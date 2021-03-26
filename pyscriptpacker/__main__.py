@@ -36,7 +36,7 @@ def _assertion(condition, error_message):
         sys.exit(1)
 
 
-def _parse_input(module_names, search_paths, output, compressed, zipped):
+def _parse_input(module_names, search_paths, output, compressed, zipped_list):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
@@ -46,6 +46,8 @@ def _parse_input(module_names, search_paths, output, compressed, zipped):
         search_paths (list): List of path to search for modules.
         output (string): The output of the packed file.
         compressed (bool): Option for compressing the sources.
+        zipped_list (list): List of files/folders which needed to be zipped
+            with the output.
     '''
     _assertion(
         output,
@@ -57,7 +59,7 @@ def _parse_input(module_names, search_paths, output, compressed, zipped):
         len(search_paths) >= 1,
         'Error: pyscriptpacker needs search paths contains the projects.')
 
-    packer.pack(module_names, search_paths, output, compressed, zipped)
+    packer.pack(module_names, search_paths, output, compressed, zipped_list)
 
 
 def main():
@@ -82,12 +84,12 @@ def main():
     )
     parser.add_option(
         '-z',
-        '--zip_output',
         action='extend',
-        dest='zipped',
+        dest='zipped_list',
         default=[],
-        help='zip the output and the specified files/folders.',
-        metavar='<file1,folder1,...>',
+        help=('zip the output and the specified files/folders. User can ' +
+              'provide None if only the output is needed to be zipped.'),
+        metavar='FILEs,FOLDERs,...',
     )
 
     options, args = parser.parse_args()
@@ -99,7 +101,7 @@ def main():
         args[1].split(','),
         args[2],
         options.compressed,
-        options.zipped,
+        options.zipped_list,
     )
 
 

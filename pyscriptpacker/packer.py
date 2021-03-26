@@ -1,7 +1,19 @@
+import os
 import sys
+import zipfile
 
 from pyscriptpacker import utils
 from pyscriptpacker.modules import ModuleManager
+
+
+def zip_output(output, zipped_list):
+    output_dir = os.path.dirname(output)
+    output_name = os.path.basename(output)
+    zip_name = output_name.split('.')[0] + '.zip'
+    with zipfile.ZipFile(os.path.join(output_dir, zip_name), 'w') as zip_file:
+        zip_file.write(output, output_name)
+        if 'None' not in zipped_list:
+            pass
 
 
 def write_output(output_path, texts):
@@ -15,7 +27,7 @@ def write_output(output_path, texts):
         sys.exit(1)
 
 
-def pack(module_names, search_paths, output, compressed, zipped):
+def pack(module_names, search_paths, output, compressed, zipped_list):
     # Init module graph to build the dependencies data.
     module_manager = ModuleManager(compressed)
     module_manager.parse_paths(search_paths, module_names)
@@ -35,5 +47,5 @@ def pack(module_names, search_paths, output, compressed, zipped):
 
     write_output(output, main_script)
 
-    if zipped != []:
-        print('zipped')
+    if zipped_list != []:
+        zip_output(output, zipped_list)
