@@ -175,18 +175,19 @@ if sys.version_info >= (3, 0):
 
     class _PackerLoader(importlib.abc.Loader):
 
-        def __init__(self, code, is_package):
-            self.code = code
-            self.is_package = is_package
+        def __init__(self, code, is_package, name):
+            self._code = code
+            self._is_package = is_package
+            self._name = name
 
         def create_module(self, spec):
             return None
 
         def exec_module(self, module):
             code = compile(
-                self.code,
-                __file__ + '/' + name.replace('.', '/') +
-                ('/__init__' if self.is_package else '') + '.py',
+                self._code,
+                __file__ + '/' + self._name.replace('.', '/') +
+                ('/__init__' if self._is_package else '') + '.py',
                 'exec',
             )
             exec(code, module.__dict__)
@@ -217,7 +218,8 @@ if sys.version_info >= (3, 0):
             return importlib.util.spec_from_loader(
                 virtual_name,
                 loader=_PackerLoader(virtual_module['code'],
-                                     virtual_module['is_package']),
+                                     virtual_module['is_package'],
+                                     virtual_name),
                 is_package=True if virtual_module['is_package'] else None,
             )
 

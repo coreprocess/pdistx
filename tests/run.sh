@@ -8,7 +8,7 @@ IFS=$'\n\t'
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # setup venv
-pip install virtualenv
+python -m pip install virtualenv --user
 virtualenv ./env
 source ./env/bin/activate
 python -m pip install --upgrade pip
