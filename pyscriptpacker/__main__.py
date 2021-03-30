@@ -2,7 +2,7 @@ import sys
 import logging
 from optparse import OptionParser, Option
 
-from pyscriptpacker import __version__
+from pyscriptpacker import __version__, __doc__
 from pyscriptpacker import packer
 from pyscriptpacker.utils import CallCounted
 
@@ -38,14 +38,7 @@ def _assertion(condition, error_message):
         sys.exit(1)
 
 
-def _parse_input(
-    module_names,
-    search_paths,
-    output,
-    compressed,
-    zipped_relative,
-    zipped_absolute,
-):
+def _parse_input(module_names, search_paths, output, compressed, zipped):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
@@ -68,14 +61,7 @@ def _parse_input(
         len(search_paths) >= 1,
         'pyscriptpacker needs search paths contains the projects.')
 
-    packer.pack(
-        module_names,
-        search_paths,
-        output,
-        compressed,
-        zipped_relative,
-        zipped_absolute,
-    )
+    packer.pack(module_names, search_paths, output, compressed, zipped)
 
 
 def main():
@@ -88,11 +74,11 @@ def main():
     logging.error = CallCounted(logging.error)
 
     # CLI
-    usage = ('pyscriptpacker [options] ' +
-             'module1,module2,... path1,path2,... output')
+    usage = 'pyscriptpacker [options] module1,module2,.. path1,path2,.. output'
 
     parser = OptionParser(option_class=_CLIExtendOption,
                           usage=usage,
+                          description=__doc__,
                           version=__version__)
     parser.disable_interspersed_args()
 
@@ -105,23 +91,15 @@ def main():
         help='compress the Python source.',
     )
     parser.add_option(
-        '--zr',
+        '-z',
+        '--zip',
         action='extend',
-        dest='zipped_relative',
+        dest='zipped_list',
         default=[],
         help=('zip the output and the specified files/folders to the root of' +
-              ' the zip file. User can provide None if only the output is ' +
-              ' needed to be zipped.'),
-        metavar='FILEs,FOLDERs,..',
-    )
-    parser.add_option(
-        '--za',
-        action='extend',
-        dest='zipped_absolute',
-        default=[],
-        help=('zip the output and the specified files/folders to the zip' +
-              ' file but maintain all the structures. User can provide None' +
-              ' if only the output is needed to be zipped.'),
+              ' the zip file or using the custom path provided by the user,' +
+              ' eg: -z file:path/to/file. User can provide None if only the' +
+              ' output is needed to be zipped. '),
         metavar='FILEs,FOLDERs,..',
     )
 
@@ -133,8 +111,7 @@ def main():
         args[1].split(','),
         args[2],
         options.compressed,
-        options.zipped_relative,
-        options.zipped_absolute,
+        options.zipped_list,
     )
 
 
