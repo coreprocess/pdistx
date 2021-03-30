@@ -38,7 +38,14 @@ def _assertion(condition, error_message):
         sys.exit(1)
 
 
-def _parse_input(module_names, search_paths, output, compressed, zipped):
+def _parse_input(
+    module_names,
+    search_paths,
+    output,
+    main_file,
+    compressed,
+    zipped,
+):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
     with the given command line options.
@@ -46,7 +53,9 @@ def _parse_input(module_names, search_paths, output, compressed, zipped):
     Args:
         module_names (list): List of module names the users want to pack.
         search_paths (list): List of path to search for modules.
-        output (string): The output of the packed file.
+        main_file (string): The file whose source code will be executed when
+            importing packed file.
+        output (string): The specification output of the packed file.
         compressed (bool): Option for compressing the sources.
         zipped_list (list): List of files/folders which needed to be zipped
             with the output.
@@ -61,7 +70,14 @@ def _parse_input(module_names, search_paths, output, compressed, zipped):
         len(search_paths) >= 1,
         'pyscriptpacker needs search paths contains the projects.')
 
-    packer.pack(module_names, search_paths, output, compressed, zipped)
+    packer.pack(
+        module_names,
+        search_paths,
+        output,
+        main_file,
+        compressed,
+        zipped,
+    )
 
 
 def main():
@@ -91,6 +107,14 @@ def main():
         help='compress the Python source.',
     )
     parser.add_option(
+        '-m',
+        '--main',
+        dest='main_file',
+        default=None,
+        help='specify the main file for the packed script.',
+        metavar='FILE',
+    )
+    parser.add_option(
         '-z',
         '--zip',
         action='extend',
@@ -110,6 +134,7 @@ def main():
         args[0].split(','),
         args[1].split(','),
         args[2],
+        options.main_file,
         options.compressed,
         options.zipped_list,
     )

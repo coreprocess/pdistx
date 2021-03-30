@@ -69,7 +69,7 @@ def write_output(output_path, texts):
         sys.exit(1)
 
 
-def pack(module_names, search_paths, output, compressed, zipped):
+def pack(module_names, search_paths, output, main_file, compressed, zipped):
     # Init module graph to build the dependencies data.
     module_manager = ModuleManager(compressed)
     module_manager.parse_paths(search_paths, module_names)
@@ -86,6 +86,9 @@ def pack(module_names, search_paths, output, compressed, zipped):
 
     # Get the setup code to execute the module data
     main_script += utils.get_setup_code()
+
+    if main_file:
+        print(main_file)
 
     write_output(output, main_script)
 
