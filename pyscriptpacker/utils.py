@@ -115,9 +115,9 @@ def _packer_import(name, globals=None, locals=None, fromlist=(), level=0):
         load_path = load_path[len(__name__.split('.')):]
 
     # skip load requests not originating from the bundle
-    elif (globals_or_empty.get('__packer_bundle_hash__', None) != _bundle_hash
-          and locals['__name__'] != __name__):
-        load_path = None
+    elif globals_or_empty.get('__packer_bundle_hash__', None) != _bundle_hash:
+        if not locals or not locals['__name__'] == __name__:
+            load_path = None
 
     # try to load and return module if load path is given
     if load_path is not None:
