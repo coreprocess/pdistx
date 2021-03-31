@@ -224,6 +224,9 @@ if sys.version_info >= (3, 0):
             )
 
     sys.meta_path.insert(0, _PackerMetaFinder())
+
+if '__main__' in _virtual_modules:
+    _try_load_module('__main__', '__main__', None, True)
 '''
 
 
