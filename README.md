@@ -23,6 +23,7 @@ Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
   -c, --compress        compress the Python source.
+  -m FILE, --main=FILE  specify the main file for the packed script.
   -z FILEs,FOLDERs,.., --zip=FILEs,FOLDERs,..
                         zip the output and the specified files/folders to the
                         root of the zip file or using the custom path provided
