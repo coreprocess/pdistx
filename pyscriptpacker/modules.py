@@ -40,18 +40,9 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, main_file=None, is_compress=False):
+    def __init__(self, is_compress=False):
         self._compress = is_compress
         self._modules = dict()
-
-        # Generate main module
-        if main_file:
-            module = ModuleInfo('__main__', os.path.basename(main_file))
-            module.content = get_file_content(main_file)
-            if self._compress:
-                module.content = compress_source(module.content)
-
-            self._modules['__main__'] = module
 
     def generate_data(self):
         '''

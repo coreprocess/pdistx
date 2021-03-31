@@ -5,6 +5,7 @@ import zipfile
 
 from pyscriptpacker import utils
 from pyscriptpacker import files
+from pyscriptpacker import compression
 from pyscriptpacker.modules import ModuleManager
 
 
@@ -57,7 +58,7 @@ def write_output(output_path, texts):
 
 def pack(module_names, search_paths, output, main_file, compressed, zipped):
     # Init module graph to build the dependencies data.
-    module_manager = ModuleManager(main_file, compressed)
+    module_manager = ModuleManager(compressed)
     module_manager.parse_paths(search_paths, module_names)
 
     # Add all modules from module graph data
@@ -71,6 +72,12 @@ def pack(module_names, search_paths, output, main_file, compressed, zipped):
 
     # Get the setup code to execute the module data
     script += utils.get_setup_code()
+
+    if main_file:
+        main_content = files.get_file_content(main_file)
+        if compressed:
+            main_content = compression.compress_source(main_content)
+        script += '\n' + main_content
 
     write_output(output, script)
 
