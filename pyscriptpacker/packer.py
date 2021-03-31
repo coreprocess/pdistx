@@ -4,22 +4,9 @@ import logging
 import zipfile
 
 from pyscriptpacker import utils
+from pyscriptpacker import files
+from pyscriptpacker import compression
 from pyscriptpacker.modules import ModuleManager
-
-
-def _retrieve_file_paths(directory):
-    '''
-    Return all file paths of the particular directory.
-
-    Args:
-        directory (string): The directory to query all the file paths.
-    '''
-    file_paths = []
-    for root, _, files in os.walk(directory):
-        for file_name in files:
-            file_path = os.path.join(root, file_name)
-            file_paths.append(file_path)
-    return file_paths
 
 
 def zip_output(output, zipped_list):
@@ -41,7 +28,7 @@ def zip_output(output, zipped_list):
                               zipped_target)
                 continue
             if os.path.isdir(zipped_target):
-                for file in _retrieve_file_paths(zipped_target):
+                for file in files.get_file_paths(zipped_target):
                     filename = os.path.relpath(file, zipped_target)
                     if not use_custom:
                         base_dir = os.path.basename(os.path.normpath(zipped))
@@ -75,22 +62,24 @@ def pack(module_names, search_paths, output, main_file, compressed, zipped):
     module_manager.parse_paths(search_paths, module_names)
 
     # Add all modules from module graph data
-    main_script = '_virtual_modules = {\n'
+    script = '_virtual_modules = {\n'
     for data in module_manager.generate_data():
-        main_script += '    "' + data.get('name') + '": {\n'
-        main_script += '        "is_package": ' + str(
-            data.get('is_package')) + ',\n'
-        main_script += '        "code": ' + repr(data.get('code')) + ',\n'
-        main_script += '    },\n'
-    main_script += '}\n\n'
+        script += '    "' + data.get('name') + '": {\n'
+        script += '        "is_package": ' + str(data.get('is_package')) + ',\n'
+        script += '        "code": ' + repr(data.get('code')) + ',\n'
+        script += '    },\n'
+    script += '}\n\n'
 
     # Get the setup code to execute the module data
-    main_script += utils.get_setup_code()
+    script += utils.get_setup_code()
 
     if main_file:
-        print(main_file)
+        main_content = files.get_file_content(main_file)
+        if compressed:
+            main_content = compression.compress_source(main_content)
+        script += '\n' + main_content
 
-    write_output(output, main_script)
+    write_output(output, script)
 
     if zipped:
         zip_output(output, zipped)
