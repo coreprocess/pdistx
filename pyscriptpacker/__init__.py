@@ -1,7 +1,7 @@
 '''
-Convert Python packages into a single file which makes the distribution of
-your projects easier, provide options for compressing the source code if the
-users want to add a security layer to it.
+Convert Python packages into a single file that makes the distribution of your
+projects simpler and provides options for compressing the source code and
+zipping the output.
 '''
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'

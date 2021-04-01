@@ -40,8 +40,8 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, is_compress=False):
-        self._compress = is_compress
+    def __init__(self, compress):
+        self._compress = compress
         self._modules = dict()
 
     def generate_data(self):

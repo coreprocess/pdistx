@@ -6,9 +6,10 @@ from pyscriptpacker import compression
 from pyscriptpacker.modules import ModuleManager
 
 
-def pack(module_names, search_paths, output, main_file, compressed, zipped):
+def pack(module_names, search_paths, output, compress_src, main_file, zip_file,
+         resource_list):
     # Init module graph to build the dependencies data.
-    module_manager = ModuleManager(compressed)
+    module_manager = ModuleManager(compress_src)
     module_manager.parse_paths(search_paths, module_names)
 
     # Add all modules from module graph data
@@ -25,14 +26,15 @@ def pack(module_names, search_paths, output, main_file, compressed, zipped):
 
     if main_file:
         main_content = files.get_file_content(main_file)
-        if compressed:
+        if compress_src:
             main_content = compression.compress_source(main_content)
         script += '\n' + main_content
 
-    files.write_output(output, script)
-
-    if zipped:
-        compression.zip_output(output, zipped)
+    # Write either the target python file or a zip file
+    if not zip_file:
+        files.write_output(output, script)
+    else:
+        compression.zip_output(zip_file, script, output, resource_list)
 
     logging.info('Finish with %s error%s!', logging.error.counter,
                  '' if logging.error.counter <= 1 else 's')

@@ -42,9 +42,10 @@ def _parse_input(
     module_names,
     search_paths,
     output,
+    compress_src,
     main_file,
-    compressed,
-    zipped,
+    zip_file,
+    resource_list,
 ):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
@@ -53,12 +54,13 @@ def _parse_input(
     Args:
         module_names (list): List of module names the users want to pack.
         search_paths (list): List of path to search for modules.
+        output (string): The specification output of the packed file.
+        compress_src (bool): Option for compressing the sources.
         main_file (string): The file whose source code will be executed when
             importing packed file.
-        output (string): The specification output of the packed file.
-        compressed (bool): Option for compressing the sources.
-        zipped_list (list): List of files/folders which needed to be zipped
-            with the output.
+        zip_file (string): Target zip file.
+        resource_list (list): List of files/folders which will be added to the
+            zip.
     '''
     _assertion(
         output,
@@ -74,9 +76,10 @@ def _parse_input(
         module_names,
         search_paths,
         output,
+        compress_src,
         main_file,
-        compressed,
-        zipped,
+        zip_file,
+        resource_list,
     )
 
 
@@ -90,7 +93,7 @@ def main():
     logging.error = CallCounted(logging.error)
 
     # CLI
-    usage = 'pyscriptpacker [options] module1,module2,.. path1,path2,.. output'
+    usage = 'python -m pyscriptpacker [options] module1,module2,.. path1,path2,.. output'
 
     parser = OptionParser(option_class=_CLIExtendOption,
                           usage=usage,
@@ -102,29 +105,36 @@ def main():
         '-c',
         '--compress',
         action='store_true',
-        dest='compressed',
+        dest='compress_src',
         default=False,
-        help='compress the Python source.',
+        help='compress the sources',
     )
     parser.add_option(
         '-m',
         '--main',
         dest='main_file',
         default=None,
-        help='specify the main file for the packed script.',
-        metavar='FILE',
+        help='append main script to the bundle',
+        metavar='main_file',
     )
     parser.add_option(
         '-z',
         '--zip',
+        dest='zip_file',
+        default=None,
+        help=('zip the bundle script'),
+        metavar='zip_file',
+    )
+    parser.add_option(
+        '-r',
+        '--resources',
         action='extend',
-        dest='zipped_list',
+        dest='resource_list',
         default=[],
-        help=('zip the output and the specified files/folders to the root of' +
-              ' the zip file or using the custom path provided by the user,' +
-              ' eg: -z file:path/to/file. User can provide None if only the' +
-              ' output is needed to be zipped. '),
-        metavar='FILEs,FOLDERs,..',
+        help=
+        ('add resource files and folders to the zip file, using their basename or a custom path annotated with a colon, e.g. -z ./res/logo.png:logo.png'
+        ),
+        metavar='path,...',
     )
 
     options, args = parser.parse_args()
@@ -134,9 +144,10 @@ def main():
         args[0].split(','),
         args[1].split(','),
         args[2],
+        options.compress_src,
         options.main_file,
-        options.compressed,
-        options.zipped_list,
+        options.zip_file,
+        options.resource_list,
     )
 
 
