@@ -3,15 +3,20 @@ import json
 import hashlib
 import sys
 import imp
+import os
+import binascii
 try:
     import __builtin__ as builtins
 except ImportError:
     import builtins
 
-_bundle_hash = hashlib.sha256(
+__packer_bundle_hash__ = hashlib.sha256(
     json.dumps(_virtual_modules, sort_keys=True).encode('utf-8')).hexdigest()
+__packer_bundle_token__ = binascii.hexlify(os.urandom(8))
 
-print('Packer: init bundle_hash={{}}'.format(_bundle_hash))
+if os.getenv('PYSCRIPTPACKER_DEBUG') == 'true':
+    print('Packer: init bundle_hash={{}} bundle_token={{}}'.format(
+        __packer_bundle_hash__, __packer_bundle_token__))
 
 
 def _try_load_module(name, local_name, parent_name, override):
@@ -30,24 +35,29 @@ def _try_load_module(name, local_name, parent_name, override):
             return
 
     # debug
-    print(
-        'Packer: loading name={{}}, qf_name={{}}, local_name={{}}, parent_name={{}}, qf_parent_name={{}}, override={{}}'
-        .format(
-            name,
-            qf_name,
-            local_name,
-            parent_name,
-            qf_parent_name,
-            override,
-        ))
+    if os.getenv('PYSCRIPTPACKER_DEBUG') == 'true':
+        print(
+            'Packer: loading name={{}}, qf_name={{}}, local_name={{}}, parent_name={{}}, qf_parent_name={{}}, override={{}}'
+            .format(
+                name,
+                qf_name,
+                local_name,
+                parent_name,
+                qf_parent_name,
+                override,
+            ))
 
     # create module object
     module = sys.modules[qf_name] = imp.new_module(qf_name)
-    setattr(module, '__packer_bundle_hash__', _bundle_hash)
+    setattr(module, '__packer_bundle_hash__', __packer_bundle_hash__)
+    setattr(module, '__packer_bundle_token__', __packer_bundle_token__)
     module.__name__ = qf_name
     if virtual_module['is_package']:
         module.__package__ = qf_name
-        module.__path__ = ['{{}}/{{}}'.format(_bundle_hash, name)]
+        module.__path__ = [
+            '{{}}/{{}}/{{}}'.format(__packer_bundle_hash__,
+                                    __packer_bundle_token__, name)
+        ]
     else:
         module.__package__ = sys.modules[qf_parent_name].__package__
 
@@ -115,7 +125,9 @@ def _packer_import(name, globals=None, locals=None, fromlist=(), level=0):
         load_path = load_path[len(__name__.split('.')):]
 
     # skip load requests not originating from the bundle
-    elif globals_or_empty.get('__packer_bundle_hash__', None) != _bundle_hash:
+    elif (globals_or_empty.get('__packer_bundle_hash__', None) !=
+          __packer_bundle_hash__) or (globals_or_empty.get(
+              '__packer_bundle_token__', None) != __packer_bundle_token__):
         load_path = None
 
     # try to load and return module if load path is given
@@ -204,8 +216,8 @@ if sys.version_info >= (3, 0):
                 load_path = load_path[len(__name__.split('.')):]
 
             # skip load requests not originating from the bundle
-            elif not path or not path[0].startswith(
-                    '{{}}/'.format(_bundle_hash)):
+            elif not path or not path[0].startswith('{{}}/{{}}/'.format(
+                    __packer_bundle_hash__, __packer_bundle_token__)):
                 return None
 
             # load module
@@ -229,3 +241,17 @@ if sys.version_info >= (3, 0):
 
 def get_setup_code():
     return setup_code.format()
+
+
+class CallCounted(object):
+    '''
+    Decorator to determine number of calls for a method
+    '''
+
+    def __init__(self, method):
+        self._method = method
+        self.counter = 0
+
+    def __call__(self, *args, **kwargs):
+        self.counter += 1
+        return self._method(*args, **kwargs)

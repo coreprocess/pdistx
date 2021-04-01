@@ -9,4 +9,4 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # pack libraries
 mkdir -p ./packed
-PYTHONPATH=.. python -m pyscriptpacker tests,lib1,lib2,lib3 ./unpacked ./packed/libs.py
+PYTHONPATH=.. python -m pyscriptpacker -m ./unpacked/tests/__main__.py tests,lib1,lib2,lib3,lib4 ./unpacked ./packed/libs.py

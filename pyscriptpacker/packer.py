@@ -1,36 +1,40 @@
-import sys
+import logging
 
 from pyscriptpacker import utils
+from pyscriptpacker import files
+from pyscriptpacker import compression
 from pyscriptpacker.modules import ModuleManager
 
 
-def write_output(output_path, texts):
-    try:
-        with open(output_path, 'w') as output:
-            output.write(texts)
-    except IOError as e:
-        sys.stdout.write('Error: Cannot write to ' + output_path +
-                         '\nPlease make sure the directory is valid!!\n' +
-                         str(e))
-        sys.exit(1)
-
-
-def pack(module_names, search_paths, output, compressed):
+def pack(module_names, search_paths, output, compress_src, main_file, zip_file,
+         resource_list):
     # Init module graph to build the dependencies data.
-    module_manager = ModuleManager(compressed)
+    module_manager = ModuleManager(compress_src)
     module_manager.parse_paths(search_paths, module_names)
 
     # Add all modules from module graph data
-    main_script = '_virtual_modules = {\n'
+    script = '_virtual_modules = {\n'
     for data in module_manager.generate_data():
-        main_script += '    "' + data.get('name') + '": {\n'
-        main_script += '        "is_package": ' + str(
-            data.get('is_package')) + ',\n'
-        main_script += '        "code": ' + repr(data.get('code')) + ',\n'
-        main_script += '    },\n'
-    main_script += '}\n\n'
+        script += '    "' + data.get('name') + '": {\n'
+        script += '        "is_package": ' + str(data.get('is_package')) + ',\n'
+        script += '        "code": ' + repr(data.get('code')) + ',\n'
+        script += '    },\n'
+    script += '}\n\n'
 
     # Get the setup code to execute the module data
-    main_script += utils.get_setup_code()
+    script += utils.get_setup_code()
 
-    write_output(output, main_script)
+    if main_file:
+        main_content = files.get_file_content(main_file)
+        if compress_src:
+            main_content = compression.compress_source(main_content)
+        script += '\n' + main_content
+
+    # Write either the target python file or a zip file
+    if not zip_file:
+        files.write_output(output, script)
+    else:
+        compression.zip_output(zip_file, script, output, resource_list)
+
+    logging.info('Finish with %s error%s!', logging.error.counter,
+                 '' if logging.error.counter <= 1 else 's')

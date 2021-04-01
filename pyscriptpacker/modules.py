@@ -1,6 +1,8 @@
 import os
-import bz2
-import base64
+import logging
+
+from .files import get_file_content
+from .compression import compress_source
 
 
 class ModuleInfo(object):
@@ -38,8 +40,8 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, is_compress=False):
-        self._compress = is_compress
+    def __init__(self, compress):
+        self._compress = compress
         self._modules = dict()
 
     def generate_data(self):
@@ -69,6 +71,7 @@ class ModuleManager(object):
         '''
         # Find the paths contain the desired modules.
         for module_name in module_names:
+            found = False
             for path in paths:
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
@@ -77,6 +80,7 @@ class ModuleManager(object):
                         for file in files:
                             if file.endswith('.py'):
                                 self._parse_file(file, file_path, path)
+                    found = True
                     break
 
                 # Fallback for single file library like 'toposort'
@@ -87,17 +91,19 @@ class ModuleManager(object):
                         os.path.dirname(full_path_file),
                         path,
                     )
+                    found = True
+                    break
+            if not found:
+                logging.error('Cannot find module for packing: %s', module_name)
 
     def _parse_file(self, file_name, file_path, root):
         full_module_name = self._find_module_of_file(file_name, file_path, root)
         module = ModuleInfo(full_module_name, file_name)
 
         # Read code content
-        module.content = self._get_file_content(
-            file_name,
-            file_path,
-            self._compress,
-        )
+        module.content = get_file_content(os.path.join(file_path, file_name))
+        if self._compress:
+            module.content = compress_source(module.content)
 
         self._modules[full_module_name] = module
 
@@ -126,29 +132,3 @@ class ModuleManager(object):
             module_name = '.'.join([module_name, name]) if module_name else name
 
         return module_name
-
-    def _get_file_content(self, file_name, file_path, compress=True):
-        '''
-        Get the content of given file with options for compressing the source.
-
-        Args:
-            file_name (string): The file for getting the content.
-            file_path (string): The path to the file.
-            compress (bool, optional): Whether the source will be compressed
-                using bz2. Defaults to True.
-
-        Returns:
-            string: The whole content of the given file.
-        '''
-        content = ''
-        with open(os.path.join(file_path, file_name), 'r') as file_data:
-            content = file_data.read()
-
-            if compress:
-                # Reference: https://github.com/liftoff/pyminifier/blob/087ea7b0c8c964f1f907c3f350f5ce281798db86/pyminifier/compression.py#L51-L76
-                compressed_source = bz2.compress(content.encode('utf-8'))
-                content = 'import bz2, base64\n'
-                content += 'exec(bz2.decompress(base64.b64decode("'
-                content += base64.b64encode(compressed_source).decode('utf-8')
-                content += '")))\n'
-        return content
