@@ -1,4 +1,16 @@
 import os
+import sys
+
+
+def write_output(output_path, texts):
+    try:
+        with open(output_path, 'w') as output:
+            output.write(texts)
+    except IOError as e:
+        sys.stdout.write('Error: Cannot write to ' + output_path +
+                         '\nPlease make sure the directory is valid!!\n' +
+                         str(e))
+        sys.exit(1)
 
 
 def get_file_content(file):
