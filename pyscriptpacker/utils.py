@@ -3,6 +3,7 @@ import json
 import hashlib
 import sys
 import imp
+import os
 try:
     import __builtin__ as builtins
 except ImportError:
