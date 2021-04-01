@@ -13,8 +13,9 @@ __packer_bundle_hash__ = hashlib.sha256(
     json.dumps(_virtual_modules, sort_keys=True).encode('utf-8')).hexdigest()
 __packer_bundle_token__ = os.urandom(8).encode('hex')
 
-print('Packer: init bundle_hash={{}} bundle_token={{}}'.format(
-    __packer_bundle_hash__, __packer_bundle_token__))
+if os.getenv('PYSCRIPTPACKER_DEBUG') == 'true':
+    print('Packer: init bundle_hash={{}} bundle_token={{}}'.format(
+        __packer_bundle_hash__, __packer_bundle_token__))
 
 
 def _try_load_module(name, local_name, parent_name, override):
@@ -33,16 +34,17 @@ def _try_load_module(name, local_name, parent_name, override):
             return
 
     # debug
-    print(
-        'Packer: loading name={{}}, qf_name={{}}, local_name={{}}, parent_name={{}}, qf_parent_name={{}}, override={{}}'
-        .format(
-            name,
-            qf_name,
-            local_name,
-            parent_name,
-            qf_parent_name,
-            override,
-        ))
+    if os.getenv('PYSCRIPTPACKER_DEBUG') == 'true':
+        print(
+            'Packer: loading name={{}}, qf_name={{}}, local_name={{}}, parent_name={{}}, qf_parent_name={{}}, override={{}}'
+            .format(
+                name,
+                qf_name,
+                local_name,
+                parent_name,
+                qf_parent_name,
+                override,
+            ))
 
     # create module object
     module = sys.modules[qf_name] = imp.new_module(qf_name)
