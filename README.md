@@ -13,8 +13,8 @@ pip install pyscriptpacker
 ```
 Usage: python -m pyscriptpacker [options] module1,module2,.. path1,path2,.. output
 
- Convert Python packages into a single file which makes the distribution of
-your projects easier, provide options for compressing the source code and
+ Convert Python packages into a single file that makes the distribution of
+your projects simpler and provides options for compressing the source code and
 zipping the output.
 
 Options:
