@@ -4,6 +4,7 @@ import hashlib
 import sys
 import imp
 import os
+import binascii
 try:
     import __builtin__ as builtins
 except ImportError:
@@ -11,7 +12,7 @@ except ImportError:
 
 __packer_bundle_hash__ = hashlib.sha256(
     json.dumps(_virtual_modules, sort_keys=True).encode('utf-8')).hexdigest()
-__packer_bundle_token__ = os.urandom(8).encode('hex')
+__packer_bundle_token__ = binascii.hexlify(os.urandom(8))
 
 if os.getenv('PYSCRIPTPACKER_DEBUG') == 'true':
     print('Packer: init bundle_hash={{}} bundle_token={{}}'.format(
