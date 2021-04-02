@@ -1,3 +1,4 @@
+import os
 import logging
 
 from pyscriptpacker import utils
@@ -11,13 +12,14 @@ def pack(
     search_paths,
     output,
     compress_src,
+    minify_src,
     obfuscate_src,
     main_file,
     zip_file,
     resource_list,
 ):
     # Init module graph to build the dependencies data.
-    module_manager = ModuleManager(compress_src, obfuscate_src)
+    module_manager = ModuleManager(compress_src, minify_src, obfuscate_src)
     module_manager.parse_paths(search_paths, module_names)
 
     # Add all modules from module graph data
@@ -33,9 +35,10 @@ def pack(
     script += utils.get_setup_code()
 
     if main_file:
-        main_content = files.get_file_content(main_file)
-        if compress_src:
-            main_content = compression.compress_source(main_content)
+        main_content = module_manager.process_file_content(
+            main_file,
+            os.path.splitext(os.path.basename(output))[0],
+        )
         script += '\n' + main_content
 
     # Write either the target python file or a zip file

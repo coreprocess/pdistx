@@ -1,11 +1,9 @@
 import os
 import logging
 
-from pyminifier import obfuscate
-
 from .files import get_file_content
 from .compression import compress_source
-from .minify import minify
+from .minify import MinifyManager
 
 
 class ModuleInfo(object):
@@ -43,16 +41,12 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, compress, obfuscated):
+    def __init__(self, compress, minify, obfuscate):
         self._compress = compress
-        self._obfuscate = obfuscated
-        self._obfuscate_table = [{}]
-        self._obfuscate_generator = None
-        self._modules = dict()
+        self._minify = minify
+        self._minify_manager = MinifyManager(obfuscate)
 
-        if self._obfuscate:
-            self._obfuscate_generator = obfuscate.obfuscation_machine(
-                identifier_length=1)
+        self._modules = dict()
 
     def generate_data(self):
         '''
@@ -67,6 +61,14 @@ class ModuleManager(object):
             data.append(self._modules[module].to_dict())
 
         return data
+
+    def process_file_content(self, file, module_name):
+        content = get_file_content(file)
+        if self._minify:
+            content = self._minify_manager.minify(content, module_name)
+        if self._compress:
+            content = compress_source(content)
+        return content
 
     def parse_paths(self, paths, module_names):
         '''
@@ -111,16 +113,10 @@ class ModuleManager(object):
         module = ModuleInfo(full_module_name, file_name)
 
         # Read code content
-        module.content = get_file_content(os.path.join(file_path, file_name))
-        if self._obfuscate:
-            module.content = minify(
-                source=module.content,
-                module=full_module_name,
-                generator=self._obfuscate_generator,
-                table=self._obfuscate_table,
-            )
-        if self._compress:
-            module.content = compress_source(module.content)
+        module.content = self.process_file_content(
+            os.path.join(file_path, file_name),
+            full_module_name,
+        )
 
         self._modules[full_module_name] = module
 

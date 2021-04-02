@@ -43,6 +43,7 @@ def _parse_input(
     search_paths,
     output,
     compress_src,
+    minify_src,
     obfuscate_src,
     main_file,
     zip_file,
@@ -78,6 +79,7 @@ def _parse_input(
         search_paths,
         output,
         compress_src,
+        minify_src,
         obfuscate_src,
         main_file,
         zip_file,
@@ -112,12 +114,22 @@ def main():
         help='compress the sources',
     )
     parser.add_option(
+        '-i',
+        '--minify',
+        action='store_true',
+        dest='minify_src',
+        default=False,
+        help='minify the sources',
+    )
+    parser.add_option(
         '-o',
         '--obfuscate',
         action='store_true',
         dest='obfuscate_src',
         default=False,
-        help='obfuscate and minify the sources',
+        help=
+        ('obfuscate the sources. Please be aware that this flag will replace the names of things like variables and functions to the smallest possible size, so use it wisely.'
+        ),
     )
     parser.add_option(
         '-m',
@@ -155,6 +167,7 @@ def main():
         args[1].split(','),
         args[2],
         options.compress_src,
+        options.minify_src,
         options.obfuscate_src,
         options.main_file,
         options.zip_file,
