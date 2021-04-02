@@ -7,13 +7,14 @@ from pyminifier import obfuscate
 
 class MinifyConfig(object):
     '''
-    Configuration for the wrapper of the pyminifier plugins, this configs is
-    mapping 1:1 with the options of the pyminifier.
+    Default configuration for the wrapper of the pyminifier plugins, this
+    configs is mapping 1:1 with the options of the pyminifier.
     '''
 
     def __init__(self):
+        self.replacement_length = 1
         self.tabs = False
-        self.use_nonlatin = True
+        self.use_nonlatin = False
         self.obfuscate = True
         self.obf_classes = True
         self.obf_functions = True
@@ -31,6 +32,7 @@ def minify(file, obfuscate_src=False):
     # Get the module name from the path
     module = os.path.split(file)[1]
     module = '.'.join(module.split('.')[:-1])
+    print('Minify found module: %s' % module)
     source = open(file).read()
 
     tokens = token_utils.listified_tokenizer(source)

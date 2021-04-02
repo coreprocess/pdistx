@@ -43,6 +43,7 @@ def _parse_input(
     search_paths,
     output,
     compress_src,
+    obfuscate_src,
     main_file,
     zip_file,
     resource_list,
@@ -77,6 +78,7 @@ def _parse_input(
         search_paths,
         output,
         compress_src,
+        obfuscate_src,
         main_file,
         zip_file,
         resource_list,
@@ -108,6 +110,14 @@ def main():
         dest='compress_src',
         default=False,
         help='compress the sources',
+    )
+    parser.add_option(
+        '-o',
+        '--obfuscate',
+        action='store_true',
+        dest='obfuscate_src',
+        default=False,
+        help='obfuscate and minify the sources',
     )
     parser.add_option(
         '-m',
@@ -145,6 +155,7 @@ def main():
         args[1].split(','),
         args[2],
         options.compress_src,
+        options.obfuscate_src,
         options.main_file,
         options.zip_file,
         options.resource_list,

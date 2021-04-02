@@ -6,10 +6,18 @@ from pyscriptpacker import compression
 from pyscriptpacker.modules import ModuleManager
 
 
-def pack(module_names, search_paths, output, compress_src, main_file, zip_file,
-         resource_list):
+def pack(
+    module_names,
+    search_paths,
+    output,
+    compress_src,
+    obfuscate_src,
+    main_file,
+    zip_file,
+    resource_list,
+):
     # Init module graph to build the dependencies data.
-    module_manager = ModuleManager(compress_src)
+    module_manager = ModuleManager(compress_src, obfuscate_src)
     module_manager.parse_paths(search_paths, module_names)
 
     # Add all modules from module graph data

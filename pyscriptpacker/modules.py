@@ -3,6 +3,7 @@ import logging
 
 from .files import get_file_content
 from .compression import compress_source
+from .minify import minify
 
 
 class ModuleInfo(object):
@@ -40,8 +41,9 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, compress):
+    def __init__(self, compress, obfuscate):
         self._compress = compress
+        self._obfuscate = obfuscate
         self._modules = dict()
 
     def generate_data(self):
@@ -98,10 +100,13 @@ class ModuleManager(object):
 
     def _parse_file(self, file_name, file_path, root):
         full_module_name = self._find_module_of_file(file_name, file_path, root)
+        print('Module found: %s', full_module_name)
         module = ModuleInfo(full_module_name, file_name)
 
         # Read code content
         module.content = get_file_content(os.path.join(file_path, file_name))
+        if self._obfuscate:
+            module.content = minify(os.path.join(file_path, file_name))
         if self._compress:
             module.content = compress_source(module.content)
 
