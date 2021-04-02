@@ -1,6 +1,8 @@
 import os
 import logging
 
+from pyminifier import obfuscate
+
 from .files import get_file_content
 from .compression import compress_source
 from .minify import minify
@@ -41,10 +43,16 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, compress, obfuscate):
+    def __init__(self, compress, obfuscated):
         self._compress = compress
-        self._obfuscate = obfuscate
+        self._obfuscate = obfuscated
+        self._obfuscate_table = [{}]
+        self._obfuscate_generator = None
         self._modules = dict()
+
+        if self._obfuscate:
+            self._obfuscate_generator = obfuscate.obfuscation_machine(
+                identifier_length=1)
 
     def generate_data(self):
         '''
@@ -100,13 +108,17 @@ class ModuleManager(object):
 
     def _parse_file(self, file_name, file_path, root):
         full_module_name = self._find_module_of_file(file_name, file_path, root)
-        print('Module found: %s', full_module_name)
         module = ModuleInfo(full_module_name, file_name)
 
         # Read code content
         module.content = get_file_content(os.path.join(file_path, file_name))
         if self._obfuscate:
-            module.content = minify(os.path.join(file_path, file_name))
+            module.content = minify(
+                source=module.content,
+                module=full_module_name,
+                generator=self._obfuscate_generator,
+                table=self._obfuscate_table,
+            )
         if self._compress:
             module.content = compress_source(module.content)
 
