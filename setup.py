@@ -19,4 +19,5 @@ setuptools.setup(
     ],
     license="GPLv3",
     python_requires=">=2.7",
+    install_requires=["pyminifier"]
 )
