@@ -33,8 +33,7 @@ def pack(
     script += utils.get_setup_code()
 
     if main_file:
-        main_content = module_manager.process_file_content(main_file)
-        script += '\n' + main_content
+        script += '\n' + module_manager.process_file_content(main_file)
     if minify_src:
         script = compression.minify_source(script)
     if compress_src:
