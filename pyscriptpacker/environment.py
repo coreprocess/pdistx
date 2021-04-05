@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import tempfile
 import subprocess
 
 
@@ -10,8 +11,6 @@ class VirtualEnvironment(object):
     environment using the virtualenv package.
     '''
 
-    VIRTUAL_ENV = 'pyscriptpacker_env'
-
     def __init__(self, python_path=None):
         try:
             import virtualenv
@@ -19,23 +18,23 @@ class VirtualEnvironment(object):
             self._install_packages(['virtualenv'])
             import virtualenv
 
-        # Create the virtual environment
+        # Create the virtual environment in a temporary directory
+        self._temp = tempfile.mkdtemp()
         virtualenv.cli_run([
-            self.VIRTUAL_ENV,
+            self._temp,
             '-p',
             sys.executable if python_path is None else python_path,
         ])
-        self._vpython_path = os.path.join(self.VIRTUAL_ENV, 'Scripts', 'python')
+        self._vpython_path = os.path.join(self._temp, 'Scripts', 'python')
 
     def __del__(self):
         '''
         Clean up the virtual environment folder.
         '''
-        pass
-        # shutil.rmtree(self.VIRTUAL_ENV)
+        shutil.rmtree(self._temp)
 
     def get_site_packages_path(self):
-        return os.path.join(self.VIRTUAL_ENV, 'Lib', 'site_packages')
+        return os.path.join(self._temp, 'Lib', 'site_packages')
 
     def install_packages(self, packages):
         '''

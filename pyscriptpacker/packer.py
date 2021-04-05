@@ -3,8 +3,8 @@ import logging
 from pyscriptpacker import utils
 from pyscriptpacker import files
 from pyscriptpacker import compression
-from pyscriptpacker import command
 from pyscriptpacker.modules import ModuleManager
+from pyscriptpacker.environment import VirtualEnvironment
 
 
 def pack(
@@ -22,7 +22,7 @@ def pack(
     # Python virtual environment for additional packages.
     venv = ''
     if package_list:
-        venv = command.VirtualEnvironment(python_path)
+        venv = VirtualEnvironment(python_path)
         venv.install_packages(package_list)
 
     # Init module graph to build the dependencies data.
