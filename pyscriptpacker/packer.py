@@ -15,7 +15,13 @@ def pack(
     main_file,
     zip_file,
     resource_list,
+    package_list,
+    python_path,
 ):
+    # TODO(Nghia Lam): Python virtual environment for additional packages.
+    print(package_list)
+    print(python_path)
+
     # Init module graph to build the dependencies data.
     module_manager = ModuleManager(compress_src, minify_src)
     module_manager.parse_paths(search_paths, module_names)
@@ -44,6 +50,8 @@ def pack(
         files.write_output(output, script)
     else:
         compression.zip_output(zip_file, script, output, resource_list)
+
+    # TODO(Nghia Lam): Clean up virtual environment
 
     logging.info('Finish with %s error%s!', logging.error.counter,
                  '' if logging.error.counter <= 1 else 's')
