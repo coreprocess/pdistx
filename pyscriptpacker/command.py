@@ -10,27 +10,32 @@ class VirtualEnvironment(object):
     environment using the virtualenv package.
     '''
 
-    _VIRTUAL_ENV = 'pyscriptpacker_env'
+    VIRTUAL_ENV = 'pyscriptpacker_env'
 
-    def __init__(self, python_path):
+    def __init__(self, python_path=None):
         try:
             import virtualenv
         except ImportError:
-            self._install_packages(['virtualenv'], python_path)
+            self._install_packages(['virtualenv'])
             import virtualenv
 
         # Create the virtual environment
-        virtualenv.cli_run([self._VIRTUAL_ENV])
+        virtualenv.cli_run([
+            self.VIRTUAL_ENV,
+            '-p',
+            sys.executable if python_path is None else python_path,
+        ])
+        self._vpython_path = os.path.join(self.VIRTUAL_ENV, 'Scripts', 'python')
 
     def __del__(self):
         '''
         Clean up the virtual environment folder.
         '''
         pass
-        # shutil.rmtree(self._VIRTUAL_ENV)
+        # shutil.rmtree(self.VIRTUAL_ENV)
 
     def get_site_packages_path(self):
-        return os.path.join(self._VIRTUAL_ENV, 'Lib', 'site_packages')
+        return os.path.join(self.VIRTUAL_ENV, 'Lib', 'site_packages')
 
     def install_packages(self, packages):
         '''
@@ -39,7 +44,7 @@ class VirtualEnvironment(object):
         Args:
             packages (list of string): The desired packages to be installed.
         '''
-        pass
+        self._install_packages(packages, self._vpython_path)
 
     def _install_packages(self, packages, python_path=None):
         '''
@@ -49,7 +54,10 @@ class VirtualEnvironment(object):
             packages (list of string): The desired packages to be installed.
             python_path (string): The python executable path.
         '''
-        if python_path is None:
-            python_path = sys.executable
-        subprocess.check_call(
-            [python_path, '-m', 'pip', 'install', ','.join(packages)])
+        subprocess.check_call([
+            'python' if python_path is None else python_path,
+            '-m',
+            'pip',
+            'install',
+            ','.join(packages),
+        ])

@@ -172,7 +172,7 @@ def main():
         dest='python_path',
         default=[],
         help=
-        ('specify the python executable binary path used for creating the virtual environment command. If this argument is not provided, pyscriptpacker will try getting the default path.'
+        ('specify the python path used for the parameter of virtualenv tool. If this argument is not provided, pyscriptpacker will try getting the default path.'
         ),
         metavar='python_path',
     )

@@ -23,6 +23,7 @@ def pack(
     venv = ''
     if package_list:
         venv = command.VirtualEnvironment(python_path)
+        venv.install_packages(package_list)
 
     # Init module graph to build the dependencies data.
     module_manager = ModuleManager(
