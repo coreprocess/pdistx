@@ -3,6 +3,7 @@ import logging
 from pyscriptpacker import utils
 from pyscriptpacker import files
 from pyscriptpacker import compression
+from pyscriptpacker import command
 from pyscriptpacker.modules import ModuleManager
 
 
@@ -18,12 +19,17 @@ def pack(
     package_list,
     python_path,
 ):
-    # TODO(Nghia Lam): Python virtual environment for additional packages.
-    print(package_list)
-    print(python_path)
+    # Python virtual environment for additional packages.
+    venv = ''
+    if package_list:
+        venv = command.VirtualEnvironment(python_path)
 
     # Init module graph to build the dependencies data.
-    module_manager = ModuleManager(compress_src, minify_src)
+    module_manager = ModuleManager(
+        compress_src,
+        minify_src,
+        venv.get_site_packages_path() if venv else None,
+    )
     module_manager.parse_paths(search_paths, module_names)
 
     # Add all modules from module graph data
@@ -50,8 +56,6 @@ def pack(
         files.write_output(output, script)
     else:
         compression.zip_output(zip_file, script, output, resource_list)
-
-    # TODO(Nghia Lam): Clean up virtual environment
 
     logging.info('Finish with %s error%s!', logging.error.counter,
                  '' if logging.error.counter <= 1 else 's')

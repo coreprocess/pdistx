@@ -40,7 +40,7 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, compress, minify):
+    def __init__(self, compress, minify, extra_path=None):
         self._compress = compress
         self._minify = minify
 
