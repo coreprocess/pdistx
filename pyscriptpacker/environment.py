@@ -25,7 +25,13 @@ class VirtualEnvironment(object):
             '-p',
             sys.executable if python_path is None else python_path,
         ])
-        self._vpython_path = os.path.join(self._temp, 'Scripts', 'python')
+        if sys.platform == 'win32':
+            self._vpython_path = os.path.join(self._temp, 'Scripts', 'python')
+            self._vsite_path = os.path.join(self._temp, 'Lib', 'site_packages')
+        else:
+            version = os.listdir(os.path.join(self._temp, 'lib'))[0]
+            self._vpython_path = os.path.join(self._temp, 'bin', 'python')
+            self._vsite_path = os.path.join(self._temp, 'lib', version, 'site-packages')
 
     def __del__(self):
         '''
@@ -34,7 +40,7 @@ class VirtualEnvironment(object):
         shutil.rmtree(self._temp)
 
     def get_site_packages_path(self):
-        return os.path.join(self._temp, 'Lib', 'site_packages')
+        return self._vsite_path
 
     def install_packages(self, packages):
         '''
