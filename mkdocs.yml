@@ -1,0 +1,69 @@
+# Project information
+site_name: Pyscriptpacker
+site_url: https://3dninjas.github.io/pyscriptpacker/
+site_author: 3dninjas
+site_description: Documentation for Pyscriptpacker python package developed by 3dninjas team.
+
+# Repository
+repo_name: 3dninjas/pyscriptpacker
+repo_url: https://github.com/3dninjas/pyscriptpacker
+edit_uri: ""
+
+# Copyright
+copyright: Copyright &copy; 2021 3dninjas
+
+theme:
+  name: material
+
+  # Don't include MkDocs' JavaScript
+  include_search_page: false
+  search_index_only: true
+
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+  language: en
+  font:
+    text: Roboto
+    code: Roboto Mono
+  # favicon: assets/favicon.png
+  icon:
+    repo: fontawesome/brands/github-alt
+
+  features:
+    - search.suggest
+    - search.highlight
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/3dninjas/
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/3d_ninjas
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/3dninjas/about/
+
+# Page navigation
+nav:
+  - Pyscriptpacker: index.md
+  # - Features: features.md
+
