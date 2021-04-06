@@ -31,7 +31,12 @@ class VirtualEnvironment(object):
         else:
             version = os.listdir(os.path.join(self._temp, 'lib'))[0]
             self._vpython_path = os.path.join(self._temp, 'bin', 'python')
-            self._vsite_path = os.path.join(self._temp, 'lib', version, 'site-packages')
+            self._vsite_path = os.path.join(
+                self._temp,
+                'lib',
+                version,
+                'site-packages',
+            )
 
     def __del__(self):
         '''
