@@ -1,5 +1,5 @@
 # Project information
-site_name: Pyscriptpacker
+site_name: 3dninjas | Pyscriptpacker
 site_url: https://3dninjas.github.io/pyscriptpacker/
 site_author: 3dninjas
 site_description: Documentation for Pyscriptpacker python package developed by 3dninjas team.
@@ -32,8 +32,8 @@ theme:
     # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: red
+      accent: red
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
@@ -64,6 +64,20 @@ extra:
 
 # Page navigation
 nav:
-  - Pyscriptpacker: index.md
+  - Home: 
+    - Pyscriptpacker: index.md
+    - License: license.md
   # - Features: features.md
 
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
