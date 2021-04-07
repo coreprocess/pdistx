@@ -1,5 +1,5 @@
 <p align="center">
-    <em>A better way for distribute your Python package.</em>
+    <em>A better way for distributing your Python packages.</em>
 </p>
 <p align="center">
     <a href="https://github.com/3dninjas/pyscriptpacker/actions/workflows/unittests.yaml" target="_blank">
