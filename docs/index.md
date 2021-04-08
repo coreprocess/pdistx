@@ -24,7 +24,10 @@ The key features are:
 - **Single file distribution:** The final result will be a single file module which allows the file can be easily placed into any other projects.
 - **Extending libraries:** Pyscriptpacker support packing external modules to your project as long as it is a Python library and can be installed via pypi (or you can provide the path to the library manually).
 - **Zip output:** The user can use Pyscriptpacker for zipping the output and other files/folder together with custom path support for a desired structure.
+- **Compressing:** Pyscriptpacker has an option which can be used to compress all the sources to add a security layer for your code.
 - **Python 2 & 3:** Pyscriptpacker is compatible with both python 2 & 3, so it can support with projects with both versions.
+
+Please see [feature](/features) for more information.
 
 ## Quick start
 
@@ -63,6 +66,8 @@ Pyscriptpacker also provides a number of command line arguments.
     > e.g. -z ./res/logo.png:logo.png
 
 ## License
+
+**GNU General Public License v3.0**
 
 Copyright (C) 2021 3dninja
 

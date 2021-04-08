@@ -50,7 +50,6 @@ theme:
     - search.suggest
     - search.highlight
     - navigation.tracking
-    - navigation.tabs
     - navigation.sections
 
 extra:
@@ -64,9 +63,8 @@ extra:
 
 # Page navigation
 nav:
-  - Home: 
-    - Pyscriptpacker: index.md
-  # - Features: features.md
+  - Pyscriptpacker: index.md
+  - Features: features.md
 
 markdown_extensions:
   - admonition

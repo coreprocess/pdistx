@@ -24,7 +24,7 @@ jobs:
       - name: pull-request
         uses: repo-sync/pull-request@v2
         with:
-          source_branch: "update_website"          
-          destination_branch: "gh-pages"           
+          source_branch: "update_website"
+          destination_branch: "gh-pages"
           pr_title: "Update website into gh-pages" 
           github_token: ${{ secrets.GITHUB_TOKEN }}
