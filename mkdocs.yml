@@ -71,6 +71,7 @@ markdown_extensions:
   - admonition
   - attr_list
   - def_list
+  - pymdownx.mark
   - pymdownx.tabbed
   - pymdownx.details
   - pymdownx.highlight
