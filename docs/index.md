@@ -1,9 +1,7 @@
-Pyscriptpacker
----
-
-_A better way for distributing your Python packages._
-
-<p align="left">
+<p align="center">
+    <em>A better way for distributing your Python packages.</em>
+</p>
+<p align="center">
     <a href="https://github.com/3dninjas/pyscriptpacker/actions/workflows/unittests.yaml" target="_blank">
         <img src="https://github.com/3dninjas/pyscriptpacker/actions/workflows/unittests.yaml/badge.svg" alt="Test">
     </a>
@@ -35,23 +33,31 @@ $ pip install pyscriptpacker
 
 $ pyscriptpacker --help
 
-Usage: 
+Usage:
     python -m pyscriptpacker [options] module1,module2,.. path1,path2,.. output
-
-Convert Python packages into a single file that makes the distribution of
-your projects simpler and provides options for compressing the source code and
-zipping the output.
-
-Options:
-  --version             show program's version number and exit
-  -h, --help            show this help message and exit
-  -c, --compress        compress the sources
-  -m main_file, --main=main_file
-                        append main script to the bundle
-  -z zip_file, --zip=zip_file
-                        zip the bundle script
-  -r path,..., --resources=path,...
-                        add resource files and folders to the zip file, using
-                        their basename or a custom path annotated with a
-                        colon, e.g. -z ./res/logo.png:logo.png
 ```
+
+Pyscriptpacker also provides a number of command line arguments.
+
+`--version` 
+:   > Show the Pyscriptpacker's version and exit.
+
+`-h, --help`
+:   > Show the Pyscriptpacker's help message and exit.
+
+`-c, --compress`
+:   > Default: `false` - This option allow to compress the sources and the
+    > packed file.
+
+`-m main_file, --main=main_file`
+:   > Default: `[]` - Append main file's script to the bundle, which allow it
+    > to be executed whenever we import the result file.
+
+`-z zip_file, --zip=zip_file`
+:   > Default: `None` - Zip the result script into the 
+    > input zip file.
+
+`-r path,..., --resources=path,...`
+:   > Default: `[]` - Add resource files and folders to the zip file, using 
+    > their basename or a custom path annotated with a colon, 
+    > e.g. -z ./res/logo.png:logo.png
