@@ -66,7 +66,6 @@ extra:
 nav:
   - Home: 
     - Pyscriptpacker: index.md
-    - License: license.md
   # - Features: features.md
 
 markdown_extensions:
