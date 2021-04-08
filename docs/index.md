@@ -49,21 +49,16 @@ Pyscriptpacker also provides a number of command line arguments.
 :   > Show the Pyscriptpacker's help message and exit.
 
 `-c, --compress`
-:   > Default: `false` - This option allow to compress the sources and the
-    > packed file.
+:   > Default: `false` - This option allow to compress the sources and the packed file.
 
 `-m main_file, --main=main_file`
-:   > Default: `[]` - Append main file's script to the bundle, which allow it
-    > to be executed whenever we import the result file.
+:   > Default: `[]` - Append main file's script to the bundle, which allow it to be executed whenever we import the result file.
 
 `-z zip_file, --zip=zip_file`
-:   > Default: `None` - Zip the result script into the 
-    > input zip file.
+:   > Default: `None` - Zip the result script into the input zip file.
 
 `-r path,..., --resources=path,...`
-:   > Default: `[]` - Add resource files and folders to the zip file, using 
-    > their basename or a custom path annotated with a colon, 
-    > e.g. -z ./res/logo.png:logo.png
+:   > Default: `[]` - Add resource files and folders to the zip file, using their basename or a custom path annotated with a colon, e.g. -z ./res/logo.png:logo.png
 
 ## License
 
