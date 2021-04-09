@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-# import our packed file first for initialize all the virtual modules
+# import our packed file first for initialize our virtual bundle
 import packed.my_lib
 from packed.my_lib.custom_widgets.main_window import MainWindow
 
