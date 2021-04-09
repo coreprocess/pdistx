@@ -17,7 +17,21 @@ $ pip install pyscriptpacker, toposort
 $ pyscriptpacker toposort <path_to_site-packages> output.py
 ```
 
-## Compressing
+Another way to do this without installing the external package manually is to use the `-k` and the `-p` flags.
+
+``` console
+$ pip install pyscriptpacker
+$ pyscriptpacker -k toposort -p <python_path> toposort ..... output.py
+```
+
+**Pyscriptpacker** will automatically create a temporary virtual environment and install the desired packages (identify with `-k` flag) to that virtual environment, it also add the **site-packages** path of that environment to the search path when Pyscriptpacker trying to find the module to pack.
+
+The `-p python_path, --python=python_path` is an optional way to tell **Pyscriptpacker** use custom python path as the interpreter which virtual environment is created based on.
+
+!!! note
+    If the user does not define the `-p python_path`, Pyscriptpacker will use the default python path in the current environment (`sys.executable`).
+
+## Compressing & Minifying
 
 Pyscriptpacker does have an option to compress the source code using the [bz2](https://docs.python.org/3/library/bz2.html) method, so it will add a security layer to your source file and still can be imported as module and working correctly.
 
@@ -46,6 +60,9 @@ Take the above **toposort** module source code as an example, here is the packin
         },
     }
     ```
+
+`-i, --minify`
+:   Furthermore, Pyscriptpacker does implement the **pyminifier** package's functionality to help minify the source code. See [here](https://github.com/liftoff/pyminifier) for more information about pyminifier package.
 
 ## Zipping output
 
