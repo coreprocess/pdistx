@@ -8,20 +8,43 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: 3.x
+
+      - name: Checkout develop(main) repo
+        uses: actions/checkout@v2
+        with:
+          path: develop
+      - name: Checkout gh-pages repo
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Create new branch from gh-pages
+        working-directory: ./gh-pages
+        run: git checkout -b update_website
+
       - name: Building site
+        working-directory: ./develop
         run: |
-          git checkout -b update_website
           pip install mkdocs mkdocs-material
           mkdocs build -c -d build_site/
-          cp -Rf build_site/* .
+
+      - name: Copy new build site to gh-pages
+        run: |
+          cp -Rf ./develop/build_site/* ./gh-pages
+      
+      - name: Push new branch
+        working-directory: ./gh-pages
+        run: |
           git add .
           git commit -m "Update website content"
           git push origin update_website --force
+
       - name: pull-request
+        working-directory: ./gh-pages
         uses: repo-sync/pull-request@v2
         with:
           source_branch: "update_website"
