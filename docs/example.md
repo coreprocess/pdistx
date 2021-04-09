@@ -1,8 +1,26 @@
+## Qt app
+
+![](./assets/qt_example_app.png)
+
+_A small qt app to demonstrate the usage of Pyscriptpacker_
+
+---
+
+Here is a simple qt app, using Pyscriptpacker to pack a custom [:octicons-file-code-24: widget library](https://github.com/3dninjas/pyscriptpacker) (`my_lib`) and then use it as a separate module for other projects.  
+
+Packer command line:
+
+``` console
+$ pyscriptpacker -c custom_widgets ./unpacked ./packed/my_lib.py
+```
+
 ## Blender addon
 
 ![](./assets/blender_example_addon.png)
 
 _Blender addon using Pyscriptpacker for packing into a zip file_
+
+---
 
 Here is a simple example, using Pyscriptpacker to pack this blender [:octicons-file-code-24: example addon](https://github.com/3dninjas/pyscriptpacker). 
 

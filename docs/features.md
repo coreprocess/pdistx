@@ -25,7 +25,7 @@ Take the above **toposort** module source code as an example, here is the packin
 
 `-c, --compress`
 
-=== "With"
+=== "With `-c`"
 
     ``` python
     _virtual_modules = {
@@ -36,7 +36,7 @@ Take the above **toposort** module source code as an example, here is the packin
     }
     ```
 
-=== "Without"
+=== "Without `-c`"
 
     ``` python
     _virtual_modules = {
