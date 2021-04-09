@@ -1,7 +1,7 @@
 # Project information
 site_name: 3dninjas | Pyscriptpacker
 site_url: https://3dninjas.github.io/pyscriptpacker/
-site_author: 3dninjas
+site_author: 3D Ninjas GmbH
 site_description: Documentation for Pyscriptpacker python package developed by 3dninjas team.
 
 # Repository
@@ -10,7 +10,7 @@ repo_url: https://github.com/3dninjas/pyscriptpacker
 edit_uri: ""
 
 # Copyright
-copyright: Copyright &copy; 2021 3dninjas
+copyright: Copyright &copy; 2021 3D Ninjas GmbH
 
 theme:
   name: material

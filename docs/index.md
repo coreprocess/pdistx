@@ -64,7 +64,7 @@ Pyscriptpacker also provides a number of command line arguments.
 
 **GNU General Public License v3.0**
 
-Copyright (C) 2021 3dninja
+Copyright (C) 2021 3D Ninjas GmbH
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
