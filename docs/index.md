@@ -24,7 +24,10 @@ The key features are:
 - **Single file distribution:** The final result will be a single file module which allows the file can be easily placed into any other projects.
 - **Extending libraries:** Pyscriptpacker support packing external modules to your project as long as it is a Python library and can be installed via pypi (or you can provide the path to the library manually).
 - **Zip output:** The user can use Pyscriptpacker for zipping the output and other files/folder together with custom path support for a desired structure.
+- **Compressing & minifying:** Pyscriptpacker has an option which can be used to compress and minify all the sources to add a security layer for your code.
 - **Python 2 & 3:** Pyscriptpacker is compatible with both python 2 & 3, so it can support with projects with both versions.
+
+Please see [feature](/features) for more information.
 
 ## Quick start
 
@@ -46,18 +49,41 @@ Pyscriptpacker also provides a number of command line arguments.
 :   > Show the Pyscriptpacker's help message and exit.
 
 `-c, --compress`
-:   > Default: `false` - This option allow to compress the sources and the
-    > packed file.
+:   > Default: `false` - This option allow to compress the sources and the packed file.
+
+`-i, --minify`
+:   > Default: `false` - Minify the source code using the [pyminifier](https://github.com/liftoff/pyminifier) package.
 
 `-m main_file, --main=main_file`
-:   > Default: `[]` - Append main file's script to the bundle, which allow it
-    > to be executed whenever we import the result file.
+:   > Default: `[]` - Append main file's script to the bundle, which allow it to be executed whenever we import the result file.
 
 `-z zip_file, --zip=zip_file`
-:   > Default: `None` - Zip the result script into the 
-    > input zip file.
+:   > Default: `None` - Zip the result script into the input zip file.
 
 `-r path,..., --resources=path,...`
-:   > Default: `[]` - Add resource files and folders to the zip file, using 
-    > their basename or a custom path annotated with a colon, 
-    > e.g. -z ./res/logo.png:logo.png
+:   > Default: `[]` - Add resource files and folders to the zip file, using their basename or a custom path annotated with a colon, e.g. -z ./res/logo.png:logo.png
+
+`-k package,..., --packages=package,...`
+:   > Default: `[]` - install additional packages to a temporary virtual python environment, can be used for searching and packing.
+
+`-p python_path, --python=python_path`
+:   > Default: `sys.executable` - specify the python path used for the parameter of virtualenv tool. If this argument is not provided, pyscriptpacker will try getting the default path.
+
+## License
+
+**GNU General Public License v3.0**
+
+Copyright (C) 2021 3D Ninjas GmbH
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.

@@ -19,7 +19,7 @@ def compress_source(source):
 
 def zip_output(zip_path, bundle_src, bundle_path, resource_list):
     zip_file = zipfile.ZipFile(zip_path, 'w')
-    zip_file.writestr(bundle_path, bundle_src)
+    zip_file.writestr(os.path.relpath(bundle_path), bundle_src)
 
     for resource in resource_list:
         if ':' in resource:
