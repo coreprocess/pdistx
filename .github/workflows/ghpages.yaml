@@ -40,6 +40,8 @@ jobs:
       - name: Push docs update branch
         working-directory: gh-pages
         run: |
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
           git add --all
           git commit -m "Update docs from commit ${{ github.sha }}"
           git push origin gh-pages-update --force
