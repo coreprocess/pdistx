@@ -1,4 +1,4 @@
-name: GitHub Page
+name: GitHub Pages
 
 on:
   push:
@@ -12,42 +12,43 @@ jobs:
         with:
           python-version: 3.x
 
-      - name: Checkout develop(main) repo
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: develop
-      - name: Checkout gh-pages repo
+          path: current
+
+      - name: Build docs
+        working-directory: current
+        run: |
+          pip install mkdocs mkdocs-material
+          mkdocs build -c -d build_docs/
+
+      - name: Checkout gh-pages branch
         uses: actions/checkout@v2
         with:
           ref: gh-pages
           path: gh-pages
 
-      - name: Create new branch from gh-pages
-        working-directory: ./gh-pages
-        run: git checkout -b update_website
+      - name: Create docs update branch
+        working-directory: gh-pages
+        run: git checkout -b gh-pages/update
 
-      - name: Building site
-        working-directory: ./develop
+      - name: Copy docs
         run: |
-          pip install mkdocs mkdocs-material
-          mkdocs build -c -d build_site/
+          cp -Rf current/build_docs/* gh-pages
 
-      - name: Copy new build site to gh-pages
+      - name: Push docs update branch
+        working-directory: gh-pages
         run: |
-          cp -Rf ./develop/build_site/* ./gh-pages
-      
-      - name: Push new branch
-        working-directory: ./gh-pages
-        run: |
-          git add .
-          git commit -m "Update website content"
-          git push origin update_website --force
+          git add --all
+          git commit -m "Update docs from commit ${{ github.sha }}"
+          git push origin gh-pages/update --force
 
-      - name: pull-request
-        working-directory: ./gh-pages
+      - name: Open docs update PR
+        working-directory: gh-pages
         uses: repo-sync/pull-request@v2
         with:
-          source_branch: "update_website"
-          destination_branch: "gh-pages"
-          pr_title: "Update website into gh-pages" 
+          source_branch: gh-pages/update
+          destination_branch: gh-pages
+          pr_title: Update docs from commit ${{ github.sha }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

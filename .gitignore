@@ -1,11 +1,8 @@
 *.egg-info
 *.pyc
 
-/build
-/dist
-
 /.vscode-env
+/build
+/build_docs
+/dist
 /envs
-
-/tests/env
-/tests/packed
