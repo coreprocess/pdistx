@@ -59,7 +59,7 @@ jobs:
               state: 'open',
             }));
             for (const pull of pulls) {
-              await context.pulls.update({
+              await github.pulls.update({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: pull.number,
