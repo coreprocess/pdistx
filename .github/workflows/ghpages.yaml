@@ -31,7 +31,7 @@ jobs:
 
       - name: Create docs update branch
         working-directory: gh-pages
-        run: git checkout -b gh-pages/update
+        run: git checkout -b gh-pages-update
 
       - name: Copy docs
         run: |
@@ -42,7 +42,7 @@ jobs:
         run: |
           git add --all
           git commit -m "Update docs from commit ${{ github.sha }}"
-          git push origin gh-pages/update --force
+          git push origin gh-pages-update --force
 
       - name: Open docs update PR
         uses: actions/github-script@v3
@@ -52,6 +52,6 @@ jobs:
             github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              head: 'gh-pages/update',
+              head: 'gh-pages-update',
               base: 'gh-pages'
             })
