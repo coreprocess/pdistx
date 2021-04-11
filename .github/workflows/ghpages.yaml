@@ -5,7 +5,7 @@ on:
     branches:
       - develop
 jobs:
-  deploy:
+  docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v2
@@ -43,7 +43,7 @@ jobs:
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           git config user.name "${{ github.actor }}"
           git add --all
-          git commit -m "Update docs from commit ${{ github.sha }}"
+          git commit --allow-empty -m "Update docs from commit ${{ github.sha }}"
           git push origin gh-pages-update --force
 
       - name: Open docs update PR
