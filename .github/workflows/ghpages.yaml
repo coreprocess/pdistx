@@ -3,7 +3,8 @@ name: GitHub Pages
 on:
   push:
     branches:
-      - publish
+      # - publish
+      - develop
 jobs:
   docs:
     runs-on: ubuntu-latest
@@ -51,13 +52,13 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            pulls = await github.paginate(await github.pulls.list({
+            pulls = await github.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
               base: 'gh-pages',
-              head: 'gh-pages-update',
+              head: `${context.repo.owner}:gh-pages-update`,
               state: 'open',
-            }));
+            });
             for (const pull of pulls) {
               await github.pulls.update({
                   owner: context.repo.owner,
