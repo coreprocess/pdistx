@@ -45,10 +45,13 @@ jobs:
           git push origin gh-pages/update --force
 
       - name: Open docs update PR
-        working-directory: gh-pages
-        uses: repo-sync/pull-request@v2
+        uses: actions/github-script@v3
         with:
-          source_branch: gh-pages/update
-          destination_branch: gh-pages
-          pr_title: Update docs from commit ${{ github.sha }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: 'gh-pages/update',
+              base: 'gh-pages'
+            })
