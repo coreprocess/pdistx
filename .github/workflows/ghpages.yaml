@@ -59,7 +59,7 @@ jobs:
               head: `${context.repo.owner}:gh-pages-update`,
               state: 'open',
             });
-            for (const pull of pulls) {
+            for (const pull of pulls.data) {
               await github.pulls.update({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
