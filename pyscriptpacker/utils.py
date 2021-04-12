@@ -216,8 +216,12 @@ if sys.version_info >= (3, 0):
                 load_path = load_path[len(__name__.split('.')):]
 
             # skip load requests not originating from the bundle
-            elif not path or not path[0].startswith('{{}}/{{}}/'.format(
-                    __packer_bundle_hash__, __packer_bundle_token__)):
+            elif not path or not hasattr(
+                    path, '__len__') or len(path) == 0 or not hasattr(
+                        path, '__getitem__') or not isinstance(
+                            path[0], str) or not path[0].startswith(
+                                '{{}}/{{}}/'.format(__packer_bundle_hash__,
+                                                    __packer_bundle_token__)):
                 return None
 
             # load module
