@@ -26,12 +26,18 @@ class VirtualEnvironment(object):
         else:
             self._bin = os.path.join(self._venv, 'bin')
         # determine site-packages path
-        self._site_packages = subprocess.check_output(
-            ['python', '-c', 'import site; print(site.getsitepackages()[0])'],
-            env={
-                'PATH': self._bin + os.pathsep + os.environ['PATH'],
-                'VIRTUAL_ENV': self._venv,
-            },
+        self._site_packages = str(
+            subprocess.check_output(
+                [
+                    'python', '-c',
+                    'import site; print(site.getsitepackages()[0])'
+                ],
+                env={
+                    'PATH': self._bin + os.pathsep + os.environ['PATH'],
+                    'VIRTUAL_ENV': self._venv,
+                },
+            ),
+            'utf-8',
         ).strip()
         if not self._site_packages:
             raise ValueError('Could not determine site-packages')
