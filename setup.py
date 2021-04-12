@@ -10,7 +10,7 @@ setuptools.setup(
     description="Convert Python packages into a single file.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/3dninjas/pyscriptpacker2",
+    url="https://github.com/3dninjas/pyscriptpacker",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python",
@@ -19,4 +19,7 @@ setuptools.setup(
     ],
     license="GPLv3",
     python_requires=">=2.7",
-)
+    install_requires=[
+        "pyminifier",
+        "virtualenv",
+    ])

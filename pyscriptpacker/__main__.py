@@ -43,9 +43,12 @@ def _parse_input(
     search_paths,
     output,
     compress_src,
+    minify_src,
     main_file,
     zip_file,
     resource_list,
+    package_list,
+    python_path,
 ):
     '''
     Check if the input options and arguments are valid and run `packer.pack`
@@ -56,11 +59,16 @@ def _parse_input(
         search_paths (list): List of path to search for modules.
         output (string): The specification output of the packed file.
         compress_src (bool): Option for compressing the sources.
+        minify_src (bool): Option for minifying the sources.
         main_file (string): The file whose source code will be executed when
             importing packed file.
         zip_file (string): Target zip file.
         resource_list (list): List of files/folders which will be added to the
             zip.
+        package_list (list): List of packages which will be installed to the
+            virtual environment.
+        python_path (string): The path to the python executable used for
+            creating the virtual environment command.
     '''
     _assertion(
         output,
@@ -77,9 +85,12 @@ def _parse_input(
         search_paths,
         output,
         compress_src,
+        minify_src,
         main_file,
         zip_file,
         resource_list,
+        package_list,
+        python_path,
     )
 
 
@@ -110,6 +121,14 @@ def main():
         help='compress the sources',
     )
     parser.add_option(
+        '-i',
+        '--minify',
+        action='store_true',
+        dest='minify_src',
+        default=False,
+        help='minify the sources (unstable, not recommended)',
+    )
+    parser.add_option(
         '-m',
         '--main',
         dest='main_file',
@@ -136,18 +155,42 @@ def main():
         ),
         metavar='path,...',
     )
+    parser.add_option(
+        '-k',
+        '--packages',
+        action='extend',
+        dest='package_list',
+        default=[],
+        help=
+        ('install additional packages to a temporary virtual python environment, can be used for searching and packing.'
+        ),
+        metavar='package,...',
+    )
+    parser.add_option(
+        '-p',
+        '--python',
+        dest='python_path',
+        default=[],
+        help=
+        ('specify the python path used for the parameter of virtualenv tool. If this argument is not provided, pyscriptpacker will try getting the default path.'
+        ),
+        metavar='python_path',
+    )
 
     options, args = parser.parse_args()
     _assertion(len(args) == 3, 'Invalid usage of pyscriptpacker.')
 
     _parse_input(
         args[0].split(','),
-        args[1].split(','),
+        args[1].split(',') if args[1] != '-' else [],
         args[2],
         options.compress_src,
+        options.minify_src,
         options.main_file,
         options.zip_file,
         options.resource_list,
+        options.package_list,
+        options.python_path,
     )
 
 

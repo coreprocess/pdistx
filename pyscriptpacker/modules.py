@@ -2,7 +2,7 @@ import os
 import logging
 
 from .files import get_file_content
-from .compression import compress_source
+from .compression import compress_source, minify_source
 
 
 class ModuleInfo(object):
@@ -40,8 +40,10 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, compress):
+    def __init__(self, compress, minify):
         self._compress = compress
+        self._minify = minify
+
         self._modules = dict()
 
     def generate_data(self):
@@ -58,6 +60,14 @@ class ModuleManager(object):
 
         return data
 
+    def process_file_content(self, file):
+        content = get_file_content(file)
+        if self._minify:
+            content = minify_source(content)
+        if self._compress:
+            content = compress_source(content)
+        return content
+
     def parse_paths(self, paths, module_names):
         '''
         Parsing through the paths, trying to find the correct modules for
@@ -69,6 +79,7 @@ class ModuleManager(object):
             module_names (list of string): User's main module target for
                 packing.
         '''
+
         # Find the paths contain the desired modules.
         for module_name in module_names:
             found = False
@@ -101,9 +112,8 @@ class ModuleManager(object):
         module = ModuleInfo(full_module_name, file_name)
 
         # Read code content
-        module.content = get_file_content(os.path.join(file_path, file_name))
-        if self._compress:
-            module.content = compress_source(module.content)
+        module.content = self.process_file_content(
+            os.path.join(file_path, file_name))
 
         self._modules[full_module_name] = module
 
