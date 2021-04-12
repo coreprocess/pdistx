@@ -12,3 +12,4 @@ def test_packed(test_case):
     import libs
     from libs.tests import run_test
     run_test(test_case)
+    print('completed')
