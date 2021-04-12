@@ -25,12 +25,12 @@ def pack(
         if package_list:
             venv = VirtualEnvironment(python_path)
             venv.install_packages(package_list)
+            search_paths = [venv.get_site_packages_path()] + search_paths
 
         # Init module graph to build the dependencies data.
         module_manager = ModuleManager(
             compress_src,
             minify_src,
-            venv.get_site_packages_path() if venv else None,
         )
         module_manager.parse_paths(search_paths, module_names)
 

@@ -40,14 +40,11 @@ class ModuleManager(object):
     required paths.
     '''
 
-    def __init__(self, compress, minify, extra_path=None):
+    def __init__(self, compress, minify):
         self._compress = compress
         self._minify = minify
 
         self._modules = dict()
-        self._paths = []
-        if extra_path:
-            self._paths.append(extra_path)
 
     def generate_data(self):
         '''
@@ -82,12 +79,11 @@ class ModuleManager(object):
             module_names (list of string): User's main module target for
                 packing.
         '''
-        self._paths.extend(paths)
 
         # Find the paths contain the desired modules.
         for module_name in module_names:
             found = False
-            for path in self._paths:
+            for path in paths:
                 full_path = os.path.join(path, module_name)
                 if os.path.exists(full_path):
                     # Find all the python file in the module paths

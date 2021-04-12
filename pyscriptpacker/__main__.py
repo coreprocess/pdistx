@@ -182,7 +182,7 @@ def main():
 
     _parse_input(
         args[0].split(','),
-        args[1].split(','),
+        args[1].split(',') if args[1] != '-' else [],
         args[2],
         options.compress_src,
         options.minify_src,
