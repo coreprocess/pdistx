@@ -3,6 +3,7 @@ import sys
 import shutil
 import tempfile
 import subprocess
+import virtualenv
 
 
 class VirtualEnvironment(object):
@@ -12,40 +13,37 @@ class VirtualEnvironment(object):
     '''
 
     def __init__(self, python_path=None):
-        try:
-            import virtualenv
-        except ImportError:
-            self._install_packages(['virtualenv'])
-            import virtualenv
-
-        # Create the virtual environment in a temporary directory
-        self._temp = tempfile.mkdtemp()
+        # setup virtual environment
+        self._venv = tempfile.mkdtemp()
         virtualenv.cli_run([
-            self._temp,
+            self._venv,
             '-p',
-            sys.executable if python_path is None else python_path,
+            python_path if python_path else sys.executable,
         ])
+        # determin bin path
         if sys.platform == 'win32':
-            self._vpython_path = os.path.join(self._temp, 'Scripts', 'python')
-            self._vsite_path = os.path.join(self._temp, 'Lib', 'site_packages')
+            self._bin = os.path.join(self._venv, 'Scripts')
         else:
-            version = os.listdir(os.path.join(self._temp, 'lib'))[0]
-            self._vpython_path = os.path.join(self._temp, 'bin', 'python')
-            self._vsite_path = os.path.join(
-                self._temp,
-                'lib',
-                version,
-                'site-packages',
-            )
+            self._bin = os.path.join(self._venv, 'bin')
+        # determine site-packages path
+        self._site_packages = subprocess.check_output(
+            ['python', '-c', 'import site; print(site.getsitepackages()[0])'],
+            env={
+                'PATH': self._bin + os.pathsep + os.environ['PATH'],
+                'VIRTUAL_ENV': self._venv,
+            },
+        ).strip()
+        if not self._site_packages:
+            raise ValueError('Could not determine site-packages')
 
-    def __del__(self):
+    def cleanup(self):
         '''
         Clean up the virtual environment folder.
         '''
-        shutil.rmtree(self._temp)
+        shutil.rmtree(self._venv)
 
     def get_site_packages_path(self):
-        return self._vsite_path
+        return self._site_packages
 
     def install_packages(self, packages):
         '''
@@ -54,20 +52,11 @@ class VirtualEnvironment(object):
         Args:
             packages (list of string): The desired packages to be installed.
         '''
-        self._install_packages(packages, self._vpython_path)
-
-    def _install_packages(self, packages, python_path=None):
-        '''
-        Install the packages using python command line.
-
-        Args:
-            packages (list of string): The desired packages to be installed.
-            python_path (string): The python executable path.
-        '''
-        subprocess.check_call([
-            'python' if python_path is None else python_path,
-            '-m',
-            'pip',
-            'install',
-            ','.join(packages),
-        ])
+        subprocess.check_call(
+            ['python', '-m', 'pip', 'install'] + packages,
+            env={
+                'PATH': self._bin + os.pathsep + os.environ['PATH'],
+                'VIRTUAL_ENV': self._venv,
+            },
+        )
+        self._install_packages(packages,)

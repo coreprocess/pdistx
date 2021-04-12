@@ -10,7 +10,7 @@ from pyminifier import token_utils
 from pyscriptpacker.files import get_file_paths
 
 
-class MinifyConfig(object):
+class _MinifyConfig(object):
     '''
     Default configuration for the wrapper of the pyminifier plugins, this
     configs is mapping 1:1 with the options of the pyminifier.
@@ -31,7 +31,7 @@ class MinifyConfig(object):
 
 def minify_source(source):
     tokens = token_utils.listified_tokenizer(source)
-    source = minification.minify(tokens, MinifyConfig())
+    source = minification.minify(tokens, _MinifyConfig())
     # Need to list the token again for untokenizing
     tokens = token_utils.listified_tokenizer(source)
     result = token_utils.untokenize(tokens)
