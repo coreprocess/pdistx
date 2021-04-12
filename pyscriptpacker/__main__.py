@@ -126,7 +126,7 @@ def main():
         action='store_true',
         dest='minify_src',
         default=False,
-        help='minify the sources',
+        help='minify the sources (unstable, not recommended)',
     )
     parser.add_option(
         '-m',

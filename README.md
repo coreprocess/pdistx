@@ -32,13 +32,11 @@ The key features are:
 
 ``` console
 $ pip install pyscriptpacker
+$ python -m pyscriptpacker --help
 
-$ pyscriptpacker --help
+Usage: python -m pyscriptpacker [options] module1,module2,.. path1,path2,.. output
 
-Usage: 
-    python -m pyscriptpacker [options] module1,module2,.. path1,path2,.. output
-
-Convert Python packages into a single file that makes the distribution of
+ Convert Python packages into a single file that makes the distribution of
 your projects simpler and provides options for compressing the source code and
 zipping the output.
 
@@ -46,7 +44,7 @@ Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
   -c, --compress        compress the sources
-  -i, --minify          minify the sources
+  -i, --minify          minify the sources (unstable, not recommended)
   -m main_file, --main=main_file
                         append main script to the bundle
   -z zip_file, --zip=zip_file
