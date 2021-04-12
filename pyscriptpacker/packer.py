@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from pyscriptpacker import utils
 from pyscriptpacker import files
@@ -19,22 +20,22 @@ def pack(
     package_list,
     python_path,
 ):
-    venv = None
     try:
-        # Python virtual environment for additional packages.
+        # Python virtual environment
+        venv = None
         if package_list:
             venv = VirtualEnvironment(python_path)
             venv.install_packages(package_list)
             search_paths = [venv.get_site_packages_path()] + search_paths
 
-        # Init module graph to build the dependencies data.
+        # Lookup module files
         module_manager = ModuleManager(
             compress_src,
             minify_src,
         )
         module_manager.parse_paths(search_paths, module_names)
 
-        # Add all modules from module graph data
+        # Add all module source codes
         script = '_virtual_modules = {\n'
         for data in module_manager.generate_data():
             script += '    "' + data.get('name') + '": {\n'
@@ -60,8 +61,10 @@ def pack(
         else:
             compression.zip_output(zip_file, script, output, resource_list)
 
-        logging.info('Finish with %s error%s!', logging.error.counter,
-                     '' if logging.error.counter <= 1 else 's')
     finally:
         if venv:
             venv.cleanup()
+
+    if logging.error.counter > 0:
+        logging.info('%s error(s) occured', logging.error.counter)
+        sys.exit(1)
