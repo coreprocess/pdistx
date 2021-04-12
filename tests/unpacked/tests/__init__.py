@@ -25,5 +25,7 @@ def run_test(no):
         from . import test12
     elif no == 13:
         from . import test13
+    elif no == 14:
+        from . import test14
     else:
         raise Exception('unknown test ', str(no))

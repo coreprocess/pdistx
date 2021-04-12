@@ -59,4 +59,3 @@ class VirtualEnvironment(object):
                 'VIRTUAL_ENV': self._venv,
             },
         )
-        self._install_packages(packages,)
