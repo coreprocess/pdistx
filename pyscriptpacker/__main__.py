@@ -70,15 +70,11 @@ def _parse_input(
         python_path (string): The path to the python executable used for
             creating the virtual environment command.
     '''
+    _assertion(output, 'output path required.')
+    _assertion(len(module_names) > 0, 'one module name required.')
     _assertion(
-        output,
-        'pyscriptpacker needs the user specify the desired output file.')
-    _assertion(
-        len(module_names) >= 1,
-        'pyscriptpacker needs at least one module name.')
-    _assertion(
-        len(search_paths) >= 1,
-        'pyscriptpacker needs search paths contains the projects.')
+        len(search_paths) > 0 or len(package_list) > 0,
+        'one search path or one package required.')
 
     packer.pack(
         module_names,
