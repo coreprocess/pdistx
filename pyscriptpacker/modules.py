@@ -54,19 +54,22 @@ class ModuleManager(object):
             list: Datas with dependency orders.
         '''
         data = []
+        added = set()
 
         for module in self._modules:
             data.append(self._modules[module].to_dict())
+            added.add(module)
 
             module_parts = module.split('.')
             for i in range(len(module_parts)):
                 parent_module = '.'.join(module_parts[0:i + 1])
-                if parent_module not in self._modules:
+                if parent_module not in self._modules and parent_module not in added:
                     data.append({
                         'name': parent_module,
                         'is_package': True,
                         'code': '',
                     })
+                    added.add(parent_module)
 
         return data
 
