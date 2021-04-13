@@ -58,6 +58,16 @@ class ModuleManager(object):
         for module in self._modules:
             data.append(self._modules[module].to_dict())
 
+            module_parts = module.split('.')
+            for i in range(len(module_parts)):
+                parent_module = '.'.join(module_parts[0:i + 1])
+                if parent_module not in self._modules:
+                    data.append({
+                        'name': parent_module,
+                        'is_package': True,
+                        'code': '',
+                    })
+
         return data
 
     def process_file_content(self, file):
