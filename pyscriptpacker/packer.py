@@ -50,9 +50,9 @@ def pack(
 
         if main_file:
             script += '\n' + module_manager.process_file_content(main_file)
-        if minify_src:
+        if minify_src == 'all':
             script = compression.minify_source(script)
-        if compress_src:
+        if compress_src == 'all':
             script = compression.compress_source(script)
 
         # Write either the target python file or a zip file

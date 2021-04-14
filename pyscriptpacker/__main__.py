@@ -109,20 +109,30 @@ def main():
     parser.disable_interspersed_args()
 
     parser.add_option(
-        '-c',
-        '--compress',
-        action='store_true',
-        dest='compress_src',
-        default=False,
-        help='compress the sources',
-    )
-    parser.add_option(
         '-i',
         '--minify',
-        action='store_true',
+        type='choice',
+        action='store',
         dest='minify_src',
-        default=False,
-        help='minify the sources (unstable, not recommended)',
+        choices=['none', 'all', 'modules'],
+        default='none',
+        metavar='mode',
+        help=
+        ('minify the sources (unstable, not recommended), specify by three modes: "none", "all", "modules"'
+        ),
+    )
+    parser.add_option(
+        '-c',
+        '--compress',
+        type='choice',
+        action='store',
+        dest='compress_src',
+        choices=['none', 'all', 'modules'],
+        default='none',
+        metavar='mode',
+        help=
+        ('compress the sources codes, specify by three modes: "none", "all", "modules"'
+        ),
     )
     parser.add_option(
         '-m',

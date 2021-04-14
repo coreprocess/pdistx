@@ -75,9 +75,9 @@ class ModuleManager(object):
 
     def process_file_content(self, file):
         content = get_file_content(file)
-        if self._minify:
+        if self._minify != 'none':
             content = minify_source(content)
-        if self._compress:
+        if self._compress != 'none':
             content = compress_source(content)
         return content
 
