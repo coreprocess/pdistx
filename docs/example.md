@@ -11,7 +11,7 @@ Here is a simple qt app, using Pyscriptpacker to pack a custom [:octicons-file-c
 Packer command line:
 
 ``` console
-$ pyscriptpacker -c custom_widgets ./unpacked ./packed/my_lib.py
+$ pyscriptpacker -c all custom_widgets ./unpacked ./packed/my_lib.py
 ```
 
 ??? note

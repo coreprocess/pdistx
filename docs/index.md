@@ -48,11 +48,23 @@ Pyscriptpacker also provides a number of command line arguments.
 `-h, --help`
 :   > Show the Pyscriptpacker's help message and exit.
 
-`-c, --compress`
-:   > Default: `false` - This option allow to compress the sources and the packed file.
+`-c mode, --compress mode`
+:   > Default: `none` - This option allow to compress the sources and the packed file with 3 choices
+    >
+    >   - `none` : Do not compress anything. This is the default value.
+    >   - `all` : Compress all the sources, included the packed file.
+    >   - `modules` : Only compress the desired modules.
 
 `-i, --minify`
-:   > Default: `false` - Minify the source code using the [pyminifier](https://github.com/liftoff/pyminifier) package.
+:   !!! warning
+        This option is heavily depended on the [pyminifier](https://github.com/liftoff/pyminifier) package, which is quite unstable, please use at your own risk.
+
+    > Default: `false` - Minify the source code using the [pyminifier](https://github.com/liftoff/pyminifier) package, just like the **compress** option, it offers 3 choices:
+    >
+    >   - `none` : Do not minify anything. This is the default value.
+    >   - `all` : Minify all the sources, included the packed file.
+    >   - `modules` : Only minify the desired modules.
+    
 
 `-m main_file, --main=main_file`
 :   > Default: `[]` - Append main file's script to the bundle, which allow it to be executed whenever we import the result file.

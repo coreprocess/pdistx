@@ -37,10 +37,7 @@ Pyscriptpacker does have an option to compress the source code using the [bz2](h
 
 Take the above **toposort** module source code as an example, here is the packing result from Pyscriptpacker with and without the compression option.
 
-`-c, --compress`
-
-`-i, --minify`
-:   Furthermore, Pyscriptpacker does implement the **pyminifier** package's functionality to help minify the source code. See [here](https://github.com/liftoff/pyminifier) for more information about pyminifier package.
+Furthermore, Pyscriptpacker does implement the **pyminifier** package's functionality to help minify the source code. See [here](https://github.com/liftoff/pyminifier) for more information about pyminifier package.
 
 ## Zipping output
 
