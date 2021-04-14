@@ -48,7 +48,6 @@ def pack(
             lines = textwrap.wrap(data.get('code'),
                                   drop_whitespace=False,
                                   break_on_hyphens=False,
-                                  break_long_words=False,
                                   replace_whitespace=False)
             for line in lines:
                 script += repr(line) + '\n'
