@@ -79,7 +79,7 @@ def _try_load_module(name, local_name, parent_name, override):
 
     # inject code
     code = compile(
-        virtual_module['code'],
+        virtual_module['code'] if virtual_module['code'] else '',
         __file__ + '/' + name.replace('.', '/') +
         ('/__init__' if virtual_module['is_package'] else '') + '.py',
         'exec',
@@ -233,7 +233,7 @@ if sys.version_info >= (3, 0):
             # create spec
             return importlib.util.spec_from_loader(
                 virtual_name,
-                loader=_PackerLoader(virtual_module['code'],
+                loader=_PackerLoader(virtual_module['code'] if virtual_module['code'] else '',
                                      virtual_module['is_package'],
                                      virtual_name),
                 is_package=True if virtual_module['is_package'] else None,

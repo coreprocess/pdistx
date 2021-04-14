@@ -1,5 +1,6 @@
-import logging
 import sys
+import logging
+import textwrap
 
 from pyscriptpacker import utils
 from pyscriptpacker import files
@@ -41,8 +42,18 @@ def pack(
             script += '    "' + data.get('name') + '": {\n'
             script += '        "is_package": ' + str(
                 data.get('is_package')) + ',\n'
-            script += '        "code": ' + repr(data.get('code')) + ',\n'
-            script += '    },\n'
+            script += '        "code": ('
+
+            # Wrap the code content to a more reasonable length.
+            lines = textwrap.wrap(data.get('code'),
+                                  drop_whitespace=False,
+                                  break_on_hyphens=False,
+                                  break_long_words=False,
+                                  replace_whitespace=False)
+            for line in lines:
+                script += repr(line) + '\n'
+
+            script += '),\n    },\n'
         script += '}\n\n'
 
         # Get the setup code to execute the module data
