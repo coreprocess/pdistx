@@ -1,9 +1,9 @@
 import logging
 import sys
 
-from . import utils
-from . import files
-from . import compression
+from .utils import get_setup_code
+from .files import write_output
+from .compression import minify_source, compress_source, zip_output
 from .modules import ModuleManager
 from .environment import VirtualEnvironment
 
@@ -46,20 +46,20 @@ def pack(
         script += '}\n\n'
 
         # Get the setup code to execute the module data
-        script += utils.get_setup_code()
+        script += get_setup_code()
 
         if main_file:
             script += '\n' + module_manager.process_file_content(main_file)
         if minify_src:
-            script = compression.minify_source(script)
+            script = minify_source(script)
         if compress_src:
-            script = compression.compress_source(script)
+            script = compress_source(script)
 
         # Write either the target python file or a zip file
         if not zip_file:
-            files.write_output(output, script)
+            write_output(output, script)
         else:
-            compression.zip_output(zip_file, script, output, resource_list)
+            zip_output(zip_file, script, output, resource_list)
 
     finally:
         if venv:

@@ -10,7 +10,7 @@ import sys
 import logging
 from optparse import OptionParser, Option
 
-from . import packer
+from .packer import pack
 from .utils import CallCounted
 
 
@@ -58,7 +58,7 @@ def _parse_input(
     python_path,
 ):
     '''
-    Check if the input options and arguments are valid and run `packer.pack`
+    Check if the input options and arguments are valid and run `pack`
     with the given command line options.
 
     Args:
@@ -83,7 +83,7 @@ def _parse_input(
         len(search_paths) > 0 or len(package_list) > 0,
         'one search path or one package required.')
 
-    packer.pack(
+    pack(
         module_names,
         search_paths,
         output,
