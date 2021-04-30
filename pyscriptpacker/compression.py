@@ -7,7 +7,7 @@ import zipfile
 from pyminifier import minification
 from pyminifier import token_utils
 
-from pyscriptpacker.files import get_file_paths
+from .files import get_file_paths
 
 
 class _MinifyConfig(object):

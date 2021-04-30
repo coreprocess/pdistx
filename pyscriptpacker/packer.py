@@ -1,11 +1,11 @@
 import logging
 import sys
 
-from pyscriptpacker import utils
-from pyscriptpacker import files
-from pyscriptpacker import compression
-from pyscriptpacker.modules import ModuleManager
-from pyscriptpacker.environment import VirtualEnvironment
+from . import utils
+from . import files
+from . import compression
+from .modules import ModuleManager
+from .environment import VirtualEnvironment
 
 
 def pack(
