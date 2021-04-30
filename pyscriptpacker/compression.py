@@ -4,8 +4,12 @@ import base64
 import logging
 import zipfile
 
-from pyminifier import minification
-from pyminifier import token_utils
+try:
+    from pyminifier import minification
+    from pyminifier import token_utils
+    HAS_PYMINIFIER=True
+except ImportError:
+    HAS_PYMINIFIER=False
 
 from .files import get_file_paths
 
@@ -30,6 +34,8 @@ class _MinifyConfig(object):
 
 
 def minify_source(source):
+    assert HAS_PYMINIFIER, 'pyminifier required'
+
     tokens = token_utils.listified_tokenizer(source)
     source = minification.minify(tokens, _MinifyConfig())
     # Need to list the token again for untokenizing

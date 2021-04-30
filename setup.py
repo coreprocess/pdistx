@@ -23,7 +23,6 @@ setuptools.setup(
         "pyminifier",
         "virtualenv",
     ],
-    py_modules=['pyscriptpacker'],
     entry_points={
         'console_scripts':['pyscriptpacker=pyscriptpacker:main'],
     })

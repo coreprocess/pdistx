@@ -3,7 +3,12 @@ import sys
 import shutil
 import tempfile
 import subprocess
-import virtualenv
+
+try:
+    import virtualenv
+    HAS_VIRTUALENV=True
+except ImportError:
+    HAS_VIRTUALENV=False
 
 
 class VirtualEnvironment(object):
@@ -13,6 +18,7 @@ class VirtualEnvironment(object):
     '''
 
     def __init__(self, python_path=None):
+        assert HAS_VIRTUALENV, 'virtualenv required'
         # setup virtual environment
         self._venv = tempfile.mkdtemp()
         virtualenv.cli_run([
