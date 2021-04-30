@@ -40,7 +40,7 @@ class VirtualEnvironment(object):
         self._site_packages = subprocess.check_output(
             [
                 os.path.join(self._bin, 'python'), '-c',
-                'import site; print(list(filter(lambda x: os.path.basename(x) == \'site-packages\', site.getsitepackages()))[0])'
+                'import os; import site; print(list(filter(lambda x: os.path.basename(x) == \'site-packages\', site.getsitepackages()))[0])'
             ],
             env=env,
         ).decode('utf-8').strip()

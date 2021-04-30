@@ -4,7 +4,7 @@ projects simpler and provides options for compressing the source code and
 zipping the output.
 '''
 
-__version__ = '0.1.12'
+__version__ = '0.1.14'
 
 import sys
 import logging
