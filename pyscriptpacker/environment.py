@@ -6,9 +6,9 @@ import subprocess
 
 try:
     import virtualenv
-    HAS_VIRTUALENV=True
+    HAS_VIRTUALENV = True
 except ImportError:
-    HAS_VIRTUALENV=False
+    HAS_VIRTUALENV = False
 
 
 class VirtualEnvironment(object):
@@ -32,12 +32,17 @@ class VirtualEnvironment(object):
         else:
             self._bin = os.path.join(self._venv, 'bin')
         # determine site-packages path
+        env = os.environ.copy()
+        env.update({
+            'PATH': self._bin + os.pathsep + os.environ['PATH'],
+            'VIRTUAL_ENV': self._venv,
+        })
         self._site_packages = subprocess.check_output(
-            ['python', '-c', 'import site; print(site.getsitepackages()[0])'],
-            env={
-                'PATH': self._bin + os.pathsep + os.environ['PATH'],
-                'VIRTUAL_ENV': self._venv,
-            },
+            [
+                os.path.join(self._bin, 'python'), '-c',
+                'import site; print(site.getsitepackages()[0])'
+            ],
+            env=env,
         ).decode('utf-8').strip()
         if not self._site_packages:
             raise ValueError('Could not determine site-packages')
@@ -58,10 +63,13 @@ class VirtualEnvironment(object):
         Args:
             packages (list of string): The desired packages to be installed.
         '''
+        env = os.environ.copy()
+        env.update({
+            'PATH': self._bin + os.pathsep + os.environ['PATH'],
+            'VIRTUAL_ENV': self._venv,
+        })
         subprocess.check_call(
-            ['python', '-m', 'pip', 'install'] + packages,
-            env={
-                'PATH': self._bin + os.pathsep + os.environ['PATH'],
-                'VIRTUAL_ENV': self._venv,
-            },
+            [os.path.join(self._bin, 'python'), '-m', 'pip', 'install'] +
+            packages,
+            env=env,
         )
