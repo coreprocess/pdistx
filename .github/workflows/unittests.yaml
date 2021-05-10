@@ -3,14 +3,14 @@ name: Unit Tests
 on:
   push:
     branches:
-      - develop
+      - main
   pull_request:
     types: [opened, reopened, review_requested, ready_for_review]
     branches:
-      - develop
+      - main
 
 jobs:
-  build:
+  unittests:
     name: ${{ matrix.os }} Python@${{ matrix.python-version}}
     strategy:
       fail-fast: false

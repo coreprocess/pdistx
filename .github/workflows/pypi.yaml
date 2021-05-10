@@ -1,17 +1,17 @@
-name: Publish
+name: PyPI
 
 on:
   push:
     branches:
       - publish
 jobs:
-  dist:
-    name: Publish
+  pypi:
     runs-on: ubuntu-20.04
     environment: publish
     steps:
       - uses: actions/checkout@v2
       - run: python3 -m pip install --user --upgrade build twine
+      - run: sed -i -E "s/^__version__\s*=\s*.+$/__version__ = '$(cat ../.version | tr -d '[:space:]')'/" pyscriptpacker/__init__.py
       - run: python3 -m build
       - run: python3 -m twine upload dist/*
         env:
