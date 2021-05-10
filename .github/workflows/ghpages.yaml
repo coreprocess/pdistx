@@ -29,15 +29,47 @@ jobs:
           ref: gh-pages
           path: gh-pages
 
+      - name: Create docs update branch
+        working-directory: gh-pages
+        run: git checkout -b gh-pages-update
+
       - name: Copy docs
         run: |
           cp -Rf current/build_docs/* gh-pages
 
-      - name: Push gh-pages branch
+      - name: Push docs update branch
         working-directory: gh-pages
         run: |
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           git config user.name "${{ github.actor }}"
           git add --all
           git commit --allow-empty -m "Update docs from commit ${{ github.sha }}"
-          git push
+          git push origin gh-pages-update --force
+
+      - name: Open docs update PR
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            pulls = await github.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              base: 'gh-pages',
+              head: `${context.repo.owner}:gh-pages-update`,
+              state: 'open',
+            });
+            for (const pull of pulls.data) {
+              await github.pulls.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pull.number,
+                  state: 'closed',
+              });
+            }
+            await github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              base: 'gh-pages',
+              head: 'gh-pages-update',
+              title: 'Update docs from commit ${{ github.sha }}',
+            });
