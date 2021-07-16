@@ -13,59 +13,44 @@ class ImportTransform(ast.NodeTransformer):
     def visit_Import(self, node: ast.Import):
         nodes = []
         for name in node.names:
+            if name.name.split('.')[0] not in self._modules:
+                nodes.append(ast.Import([name]))
+                continue
+
             nodes.append(
                 ast.Expr(value=ast.Call(
                     func=ast.Name(id='__import__', ctx=ast.Load()),
                     args=[
-                        ast.BinOp(
-                            left=ast.BinOp(
-                                left=ast.Subscript(
-                                    value=ast.Call(
-                                        func=ast.Attribute(
-                                            value=ast.Name(
-                                                id='__package__',
+                        ast.Call(
+                            func=ast.Attribute(value=ast.Constant(value='.'), attr='join', ctx=ast.Load()),
+                            args=[
+                                ast.BinOp(
+                                    left=ast.Subscript(
+                                        value=ast.Call(
+                                            func=ast.Attribute(
+                                                value=ast.Name(id='__package__', ctx=ast.Load()),
+                                                attr='split',
                                                 ctx=ast.Load(),
                                             ),
-                                            attr='split',
-                                            ctx=ast.Load(),
+                                            args=[ast.Constant(value='.')],
+                                            keywords=[],
                                         ),
-                                        args=[ast.Constant(
-                                            value='.',
-                                            kind=None,
-                                        )],
-                                        keywords=[],
-                                    ),
-                                    slice=ast.Slice(
-                                        lower=None,
-                                        upper=ast.UnaryOp(
+                                        slice=ast.Slice(upper=ast.UnaryOp(
                                             op=ast.USub(),
-                                            operand=ast.Constant(
-                                                value=self._level,
-                                                kind=None,
-                                            ),
-                                        ),
-                                        step=None,
+                                            operand=ast.Constant(value=self._level),
+                                        )),
+                                        ctx=ast.Load(),
                                     ),
-                                    ctx=ast.Load(),
-                                ),
-                                op=ast.Add(),
-                                right=ast.Constant(value='.', kind=None),
-                            ),
-                            op=ast.Add(),
-                            right=ast.Constant(value=name.name, kind=None),
-                        ),
-                        ast.Call(
-                            func=ast.Name(id='globals', ctx=ast.Load()),
-                            args=[],
+                                    op=ast.Add(),
+                                    right=ast.List(elts=[ast.Constant(value=name.name)], ctx=ast.Load()),
+                                )
+                            ],
                             keywords=[],
                         ),
-                        ast.Call(
-                            func=ast.Name(id='locals', ctx=ast.Load()),
-                            args=[],
-                            keywords=[],
-                        ),
+                        ast.Call(func=ast.Name(id='globals', ctx=ast.Load()), args=[], keywords=[]),
+                        ast.Call(func=ast.Name(id='locals', ctx=ast.Load()), args=[], keywords=[]),
                         ast.List(elts=[], ctx=ast.Load()),
-                        ast.Constant(value=0, kind=None),
+                        ast.Constant(value=0),
                     ],
                     keywords=[],
                 )))
@@ -78,7 +63,7 @@ class ImportTransform(ast.NodeTransformer):
                             name=name.name.split('.')[0],
                             asname=None,
                         )],
-                        level=self._level,
+                        level=self._level + 1,
                     ))
 
             else:
@@ -89,17 +74,17 @@ class ImportTransform(ast.NodeTransformer):
                             name=name.name.split('.')[-1],
                             asname=name.asname,
                         )],
-                        level=self._level,
+                        level=self._level + 1,
                     ))
 
         return nodes
 
     def visit_ImportFrom(self, node: ast.ImportFrom):
-        if node.level == 0:
+        if node.level == 0 and node.module.split('.')[0] in self._modules:
             return ast.ImportFrom(
                 module=node.module,
                 names=node.names,
-                level=self._level,
+                level=self._level + 1,
             )
 
         return node

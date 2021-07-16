@@ -45,7 +45,7 @@ def perform(
             source_folders.append(tmp_source_folder)
 
             # install packages into temp folder
-            print(f'Installing {requirements_file}...')
+            print(f'Installing {requirements_file} to {tmp_source_folder}...')
             check_call([
                 pip_cmd, 'install', '--upgrade', '--requirement', requirements_file, '--target',
                 str(tmp_source_folder)
@@ -53,7 +53,7 @@ def perform(
 
         # clean target folder
         for entry_name in listdir(target_folder):
-            if entry_name != 'requirements.txt':
+            if entry_name not in ['requirements.txt', '.gitignore']:
                 entry_path = target_folder.joinpath(entry_name)
                 if entry_path.is_dir() and not entry_path.is_symlink():
                     rmtree(entry_path)
@@ -70,7 +70,7 @@ def perform(
                 entry_source_path = source_folder.joinpath(entry_name)
 
                 if entry_source_path.is_dir():
-                    if _should_ignore(entry_name):
+                    if _should_ignore(entry_name) or entry_name in ['bin']:
                         continue
                     module_name = entry_name
 
@@ -94,6 +94,7 @@ def perform(
 
         # copy and transform all module files
         for module_name, module_source_path in modules.items():
+            print(f'Processing {module_name} from {module_source_path}...')
             module_target_path = target_folder.joinpath(module_name)
 
             # handle file case
@@ -124,6 +125,9 @@ def perform(
                             import_transform(source_file, target_file, level, module_names)
                         else:
                             copy(source_file, target_file, follow_symlinks=True)
+
+        # create empty init file in target folder
+        open(target_folder.joinpath('__init__.py'), 'w').close()
 
     finally:
         # clean up temporary folders
