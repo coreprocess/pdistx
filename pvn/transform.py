@@ -13,10 +13,12 @@ class ImportTransform(ast.NodeTransformer):
     def visit_Import(self, node: ast.Import):
         nodes = []
         for name in node.names:
+            # Keep "import abc.def" and "import abc.def as xyz" for non included modules
             if name.name.split('.')[0] not in self._modules:
                 nodes.append(ast.Import([name]))
                 continue
 
+            # Perform an absolute import with "__import__" to ensure nested imports are solved properly
             nodes.append(
                 ast.Expr(value=ast.Call(
                     func=ast.Name(id='__import__', ctx=ast.Load()),
@@ -55,6 +57,7 @@ class ImportTransform(ast.NodeTransformer):
                     keywords=[],
                 )))
 
+            # Rewrite "import abc.def" to "from .. import abc"
             if not name.asname:
                 nodes.append(
                     ast.ImportFrom(
@@ -66,6 +69,7 @@ class ImportTransform(ast.NodeTransformer):
                         level=self._level + 1,
                     ))
 
+            # Rewrite "import abc.def as xyz" to "from ..abc import def as xyz"
             else:
                 nodes.append(
                     ast.ImportFrom(
@@ -80,6 +84,7 @@ class ImportTransform(ast.NodeTransformer):
         return nodes
 
     def visit_ImportFrom(self, node: ast.ImportFrom):
+        # Rewrite "from abc import def (as xyz)" to "from ..abc import def (as xyz)"
         if node.level == 0 and node.module.split('.')[0] in self._modules:
             return ast.ImportFrom(
                 module=node.module,
