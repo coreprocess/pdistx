@@ -1,3 +1,4 @@
-python-xlib
-ewmh
-t3dn-bip
+python-xlib == 0.31
+ewmh == 0.1.6
+t3dn-bip == 1.0.9
+six == 1.16.0
