@@ -94,6 +94,70 @@ class ImportTransform(ast.NodeTransformer):
 
         return node
 
+    def visit_Call(self, node: ast.Call):
+        if isinstance(node.func, ast.Name) and node.func.id == '__import__' and isinstance(node.func.ctx, ast.Load):
+
+            # we do not support *x and **x
+            has_starred = len([x for x in node.args if isinstance(x, ast.Starred)]) > 0
+            has_kwargs_list = len([x for x in node.keywords if not x.arg]) > 0
+
+            if not has_starred and not has_kwargs_list:
+
+                # extract arguments
+                arg_name = node.args[0] if len(node.args) > 0 else ast.Constant(value=None)
+                arg_globals = node.args[1] if len(node.args) > 1 else ast.Constant(value=None)
+                arg_locals = node.args[2] if len(node.args) > 2 else ast.Constant(value=None)
+                arg_fromlist = node.args[3] if len(node.args) > 3 else ast.List(elts=[])
+                arg_level = node.args[4] if len(node.args) > 4 else ast.Constant(value=0)
+
+                # extract keyword arguments
+                kwargs = {x.arg: x.value for x in node.keywords}
+                arg_name = kwargs['name'] if 'name' in kwargs else arg_name
+                arg_globals = kwargs['globals'] if 'globals' in kwargs else arg_globals
+                arg_locals = kwargs['locals'] if 'locals' in kwargs else arg_locals
+                arg_fromlist = kwargs['fromlist'] if 'fromlist' in kwargs else arg_fromlist
+                arg_level = kwargs['level'] if 'level' in kwargs else arg_level
+
+                # we support level 0 only
+                if isinstance(arg_level, ast.Constant) and arg_level.value == 0:
+
+                    # transform name argument
+                    arg_name = ast.Call(
+                        func=ast.Attribute(value=ast.Constant(value='.'), attr='join', ctx=ast.Load()),
+                        args=[
+                            ast.BinOp(
+                                left=ast.Subscript(
+                                    value=ast.Call(
+                                        func=ast.Attribute(
+                                            value=ast.Name(id='__package__', ctx=ast.Load()),
+                                            attr='split',
+                                            ctx=ast.Load(),
+                                        ),
+                                        args=[ast.Constant(value='.')],
+                                        keywords=[],
+                                    ),
+                                    slice=ast.Slice(upper=ast.UnaryOp(
+                                        op=ast.USub(),
+                                        operand=ast.Constant(value=self._level),
+                                    )),
+                                    ctx=ast.Load(),
+                                ),
+                                op=ast.Add(),
+                                right=ast.List(elts=[arg_name], ctx=ast.Load()),
+                            )
+                        ],
+                        keywords=[],
+                    )
+
+                    # rewrite __import__ call
+                    return ast.Call(
+                        func=node.func,
+                        args=[arg_name, arg_globals, arg_locals, arg_fromlist, arg_level],
+                        keywords=[],
+                    )
+
+        return node
+
 
 def import_transform(source_path: Path, target_path: Path, level: int, modules: List[str]):
     # read file

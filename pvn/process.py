@@ -95,11 +95,10 @@ def perform(
         # copy and transform all module files
         for module_name, module_source_path in modules.items():
             print(f'Processing {module_name} from {module_source_path}...')
-            module_target_path = target_folder.joinpath(module_name)
 
             # handle file case
             if module_source_path.is_file():
-                import_transform(module_source_path, module_target_path, 1, module_names)
+                import_transform(module_source_path, target_folder.joinpath(module_name + '.py'), 1, module_names)
 
             # handle directory case
             else:
