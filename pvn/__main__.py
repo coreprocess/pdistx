@@ -1,6 +1,7 @@
 import argparse
-from .process import perform
 from pathlib import Path
+
+from pvn.process import perform
 
 
 def main():

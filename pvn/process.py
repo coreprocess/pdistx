@@ -40,14 +40,16 @@ def perform(
         # create a source folder for each requirements
         for requirements_file in requirements_files:
             # create temp folder
-            tmp_source_folder = mkdtemp()
+            tmp_source_folder = Path(mkdtemp())
             tmp_source_folders.append(tmp_source_folder)
             source_folders.append(tmp_source_folder)
 
             # install packages into temp folder
             print(f'Installing {requirements_file}...')
-            check_call(
-                [pip_cmd, 'install', '--upgrade', '--requirement', requirements_file, '--target', tmp_source_folder])
+            check_call([
+                pip_cmd, 'install', '--upgrade', '--requirement', requirements_file, '--target',
+                str(tmp_source_folder)
+            ])
 
         # clean target folder
         for entry_name in listdir(target_folder):
@@ -107,11 +109,12 @@ def perform(
 
                     # ensure sub target directory exists
                     sub_source_folder = Path(sub_source_folder)
-                    sub_target_folder = target_folder.joinpath(sub_source_folder.relative_to(module_source_path))
+                    sub_folder = sub_source_folder.relative_to(module_source_path)
+                    sub_target_folder = target_folder.joinpath(module_name, sub_folder)
                     makedirs(sub_target_folder, exist_ok=True)
 
                     # transform or copy files
-                    level = len(sub_source_folder.relative_to(module_source_path).parts) + 1
+                    level = len(sub_folder.parts) + 1
 
                     for file in files:
                         source_file = sub_source_folder.joinpath(file)
