@@ -61,6 +61,7 @@ def perform(
                     entry_path.unlink()
 
         # build dictionary of modules
+        # pylint: disable=unsubscriptable-object
         modules: dict[str, Path] = {}
 
         for source_folder in source_folders:
