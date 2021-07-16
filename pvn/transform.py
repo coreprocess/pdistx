@@ -135,31 +135,63 @@ class ImportTransform(ast.NodeTransformer):
         return node
 
     def visit_Call(self, node: ast.Call):
-        if isinstance(node.func, ast.Name) and node.func.id == '__import__' and isinstance(node.func.ctx, ast.Load):
 
-            # we do not support *x and **x
-            has_starred = len([x for x in node.args if isinstance(x, ast.Starred)]) > 0
-            has_kwargs_list = len([x for x in node.keywords if not x.arg]) > 0
+        if isinstance(node.func, ast.Name) and isinstance(node.func.ctx, ast.Load):
 
-            if not has_starred and not has_kwargs_list:
+            # rewrite __import__ calls
+            if node.func.id == '__import__' and len(node.args) <= 5:
 
-                # extract arguments
-                arg_name = node.args[0] if len(node.args) > 0 else ast.Constant(value=None)
-                arg_globals = node.args[1] if len(node.args) > 1 else ast.Constant(value=None)
-                arg_locals = node.args[2] if len(node.args) > 2 else ast.Constant(value=None)
-                arg_fromlist = node.args[3] if len(node.args) > 3 else ast.List(elts=[])
-                arg_level = node.args[4] if len(node.args) > 4 else ast.Constant(value=0)
+                # we do not support *x and **x
+                has_starred = len([x for x in node.args if isinstance(x, ast.Starred)]) > 0
+                has_kwargs_list = len([x for x in node.keywords if not x.arg]) > 0
 
-                # extract keyword arguments
-                kwargs = {x.arg: x.value for x in node.keywords}
-                arg_name = kwargs['name'] if 'name' in kwargs else arg_name
-                arg_globals = kwargs['globals'] if 'globals' in kwargs else arg_globals
-                arg_locals = kwargs['locals'] if 'locals' in kwargs else arg_locals
-                arg_fromlist = kwargs['fromlist'] if 'fromlist' in kwargs else arg_fromlist
-                arg_level = kwargs['level'] if 'level' in kwargs else arg_level
+                if not has_starred and not has_kwargs_list:
 
-                # we support level 0 only
-                if isinstance(arg_level, ast.Constant) and arg_level.value == 0:
+                    # extract arguments
+                    arg_name = node.args[0] if len(node.args) > 0 else ast.Constant(value=None)
+                    arg_globals = node.args[1] if len(node.args) > 1 else ast.Constant(value=None)
+                    arg_locals = node.args[2] if len(node.args) > 2 else ast.Constant(value=None)
+                    arg_fromlist = node.args[3] if len(node.args) > 3 else ast.List(elts=[])
+                    arg_level = node.args[4] if len(node.args) > 4 else ast.Constant(value=0)
+
+                    # extract keyword arguments
+                    kwargs = {x.arg: x.value for x in node.keywords}
+                    arg_name = kwargs['name'] if 'name' in kwargs else arg_name
+                    arg_globals = kwargs['globals'] if 'globals' in kwargs else arg_globals
+                    arg_locals = kwargs['locals'] if 'locals' in kwargs else arg_locals
+                    arg_fromlist = kwargs['fromlist'] if 'fromlist' in kwargs else arg_fromlist
+                    arg_level = kwargs['level'] if 'level' in kwargs else arg_level
+
+                    # we support level 0 only
+                    if isinstance(arg_level, ast.Constant) and arg_level.value == 0:
+
+                        # transform name argument
+                        arg_name = _ImportNameStringTransform(self._level, self._modules).visit(arg_name)
+
+                        # rewrite __import__ call
+                        return ast.Call(
+                            func=node.func,
+                            args=[arg_name, arg_globals, arg_locals, arg_fromlist, arg_level],
+                            keywords=[],
+                        )
+
+            # rewrite import_module calls (importlib)
+            if node.func.id == 'import_module' and len(node.args) <= 2:
+
+                # we do not support *x and **x
+                has_starred = len([x for x in node.args if isinstance(x, ast.Starred)]) > 0
+                has_kwargs_list = len([x for x in node.keywords if not x.arg]) > 0
+
+                if not has_starred and not has_kwargs_list:
+
+                    # extract arguments
+                    arg_name = node.args[0] if len(node.args) > 0 else ast.Constant(value=None)
+                    arg_package = node.args[1] if len(node.args) > 1 else ast.Constant(value=None)
+
+                    # extract keyword arguments
+                    kwargs = {x.arg: x.value for x in node.keywords}
+                    arg_name = kwargs['name'] if 'name' in kwargs else arg_name
+                    arg_package = kwargs['package'] if 'package' in kwargs else arg_package
 
                     # transform name argument
                     arg_name = _ImportNameStringTransform(self._level, self._modules).visit(arg_name)
@@ -167,7 +199,7 @@ class ImportTransform(ast.NodeTransformer):
                     # rewrite __import__ call
                     return ast.Call(
                         func=node.func,
-                        args=[arg_name, arg_globals, arg_locals, arg_fromlist, arg_level],
+                        args=[arg_name, arg_package],
                         keywords=[],
                     )
 
