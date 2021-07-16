@@ -3,6 +3,46 @@ from pathlib import Path
 from typing import List
 
 
+class _ImportNameStringTransform(ast.NodeTransformer):
+
+    def __init__(self, level, modules):
+        self._level = level
+        self._modules = modules
+        super().__init__()
+
+    def visit_Constant(self, node: ast.Constant):
+        if isinstance(node.value, str):
+            if node.value.split('.')[0] in self._modules:
+                return ast.Call(
+                    func=ast.Attribute(value=ast.Constant(value='.'), attr='join', ctx=ast.Load()),
+                    args=[
+                        ast.BinOp(
+                            left=ast.Subscript(
+                                value=ast.Call(
+                                    func=ast.Attribute(
+                                        value=ast.Name(id='__package__', ctx=ast.Load()),
+                                        attr='split',
+                                        ctx=ast.Load(),
+                                    ),
+                                    args=[ast.Constant(value='.')],
+                                    keywords=[],
+                                ),
+                                slice=ast.Slice(upper=ast.UnaryOp(
+                                    op=ast.USub(),
+                                    operand=ast.Constant(value=self._level),
+                                )),
+                                ctx=ast.Load(),
+                            ),
+                            op=ast.Add(),
+                            right=ast.List(elts=[node], ctx=ast.Load()),
+                        )
+                    ],
+                    keywords=[],
+                )
+
+        return node
+
+
 class ImportTransform(ast.NodeTransformer):
 
     def __init__(self, level, modules):
@@ -122,32 +162,7 @@ class ImportTransform(ast.NodeTransformer):
                 if isinstance(arg_level, ast.Constant) and arg_level.value == 0:
 
                     # transform name argument
-                    arg_name = ast.Call(
-                        func=ast.Attribute(value=ast.Constant(value='.'), attr='join', ctx=ast.Load()),
-                        args=[
-                            ast.BinOp(
-                                left=ast.Subscript(
-                                    value=ast.Call(
-                                        func=ast.Attribute(
-                                            value=ast.Name(id='__package__', ctx=ast.Load()),
-                                            attr='split',
-                                            ctx=ast.Load(),
-                                        ),
-                                        args=[ast.Constant(value='.')],
-                                        keywords=[],
-                                    ),
-                                    slice=ast.Slice(upper=ast.UnaryOp(
-                                        op=ast.USub(),
-                                        operand=ast.Constant(value=self._level),
-                                    )),
-                                    ctx=ast.Load(),
-                                ),
-                                op=ast.Add(),
-                                right=ast.List(elts=[arg_name], ctx=ast.Load()),
-                            )
-                        ],
-                        keywords=[],
-                    )
+                    arg_name = _ImportNameStringTransform(self._level, self._modules).visit(arg_name)
 
                     # rewrite __import__ call
                     return ast.Call(
