@@ -1,11 +1,13 @@
 import ast
 from pathlib import Path
+from typing import List
 
 
 class ImportTransform(ast.NodeTransformer):
 
-    def __init__(self, level):
+    def __init__(self, level, modules):
         self._level = level
+        self._modules = modules
         super().__init__()
 
     def visit_Import(self, node: ast.Import):
@@ -27,12 +29,10 @@ class ImportTransform(ast.NodeTransformer):
                                             attr='split',
                                             ctx=ast.Load(),
                                         ),
-                                        args=[
-                                            ast.Constant(
-                                                value='.',
-                                                kind=None,
-                                            )
-                                        ],
+                                        args=[ast.Constant(
+                                            value='.',
+                                            kind=None,
+                                        )],
                                         keywords=[],
                                     ),
                                     slice=ast.Slice(
@@ -74,12 +74,10 @@ class ImportTransform(ast.NodeTransformer):
                 nodes.append(
                     ast.ImportFrom(
                         module=None,
-                        names=[
-                            ast.alias(
-                                name=name.name.split('.')[0],
-                                asname=None,
-                            )
-                        ],
+                        names=[ast.alias(
+                            name=name.name.split('.')[0],
+                            asname=None,
+                        )],
                         level=self._level,
                     ))
 
@@ -87,12 +85,10 @@ class ImportTransform(ast.NodeTransformer):
                 nodes.append(
                     ast.ImportFrom(
                         module='.'.join(name.name.split('.')[:-1]),
-                        names=[
-                            ast.alias(
-                                name=name.name.split('.')[-1],
-                                asname=name.asname,
-                            )
-                        ],
+                        names=[ast.alias(
+                            name=name.name.split('.')[-1],
+                            asname=name.asname,
+                        )],
                         level=self._level,
                     ))
 
@@ -109,7 +105,17 @@ class ImportTransform(ast.NodeTransformer):
         return node
 
 
-with open(Path(__file__).parent.joinpath('test2.py').resolve()) as f:
-    tree = ast.parse(f.read())
-    tree = ast.fix_missing_locations(ImportTransform(2).visit(tree))
-    print(ast.unparse(tree))
+def import_transform(source_path: Path, target_path: Path, level: int, modules: List[str]):
+    # read file
+    with open(source_path, 'r') as sf:
+        source = sf.read()
+
+    # transform
+    tree = ast.parse(source, filename=str(source_path), type_comments=True)
+    tree = ImportTransform(level, modules).visit(tree)
+    tree = ast.fix_missing_locations(tree)
+    target = ast.unparse(tree)
+
+    # write file
+    with open(target_path, 'w') as tf:
+        tf.write(target)
