@@ -8,11 +8,19 @@ class _ImportNameStringTransform(ast.NodeTransformer):
     def __init__(self, level, modules):
         self._level = level
         self._modules = modules
+        self.uses_package_or_name = False
+        self.string_rewrite_applied = False
         super().__init__()
+
+    def visit_Name(self, node: ast.Name):
+        if node.id in ['__package__', '__name__']:
+            self.uses_package_or_name = True
+        return node
 
     def visit_Constant(self, node: ast.Constant):
         if isinstance(node.value, str):
             if node.value.split('.')[0] in self._modules:
+                self.string_rewrite_applied = True
                 return ast.Call(
                     func=ast.Attribute(value=ast.Constant(value='.'), attr='join', ctx=ast.Load()),
                     args=[
@@ -41,6 +49,14 @@ class _ImportNameStringTransform(ast.NodeTransformer):
                 )
 
         return node
+
+
+def _transform_import_name_string(level, modules, name):
+    visitor = _ImportNameStringTransform(level, modules)
+    name = visitor.visit(name)
+    if visitor.uses_package_or_name or not visitor.string_rewrite_applied:
+        return None
+    return name
 
 
 class ImportTransform(ast.NodeTransformer):
@@ -166,14 +182,15 @@ class ImportTransform(ast.NodeTransformer):
                     if isinstance(arg_level, ast.Constant) and arg_level.value == 0:
 
                         # transform name argument
-                        arg_name = _ImportNameStringTransform(self._level, self._modules).visit(arg_name)
+                        arg_name = _transform_import_name_string(self._level, self._modules, arg_name)
 
                         # rewrite __import__ call
-                        return ast.Call(
-                            func=node.func,
-                            args=[arg_name, arg_globals, arg_locals, arg_fromlist, arg_level],
-                            keywords=[],
-                        )
+                        if arg_name:
+                            return ast.Call(
+                                func=node.func,
+                                args=[arg_name, arg_globals, arg_locals, arg_fromlist, arg_level],
+                                keywords=[],
+                            )
 
             # rewrite import_module calls (importlib)
             if node.func.id == 'import_module' and len(node.args) <= 2:
@@ -194,14 +211,15 @@ class ImportTransform(ast.NodeTransformer):
                     arg_package = kwargs['package'] if 'package' in kwargs else arg_package
 
                     # transform name argument
-                    arg_name = _ImportNameStringTransform(self._level, self._modules).visit(arg_name)
+                    arg_name = _transform_import_name_string(self._level, self._modules, arg_name)
 
                     # rewrite __import__ call
-                    return ast.Call(
-                        func=node.func,
-                        args=[arg_name, arg_package],
-                        keywords=[],
-                    )
+                    if arg_name:
+                        return ast.Call(
+                            func=node.func,
+                            args=[arg_name, arg_package],
+                            keywords=[],
+                        )
 
         return node
 
