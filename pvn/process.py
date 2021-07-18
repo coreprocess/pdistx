@@ -1,24 +1,17 @@
+from fnmatch import fnmatch
 from os import listdir, makedirs, walk
 from pathlib import Path
 from shutil import copy, rmtree
 from subprocess import check_call
 from tempfile import mkdtemp
 from typing import List
-from fnmatch import fnmatch
 
 from .transform import import_transform
 
-IGNORE = [
-    '*.dist-info',
-    '.git',
-    '__pycache__',
-    '*.pyc',
-]
 
-
-def _should_ignore(name: str):
-    for entry in IGNORE:
-        if fnmatch(name, entry):
+def _fnmatch_any(name: str, patterns: List[str]):
+    for pattern in patterns:
+        if fnmatch(name, pattern):
             return True
     return False
 
@@ -71,7 +64,7 @@ def perform(
                 entry_source_path = source_folder.joinpath(entry_name)
 
                 if entry_source_path.is_dir():
-                    if _should_ignore(entry_name) or entry_name in ['bin']:
+                    if _fnmatch_any(entry_name, ['*.dist-info', 'bin', '__pycache__', '.git']):
                         continue
                     module_name = entry_name
 
@@ -105,8 +98,8 @@ def perform(
             else:
                 for sub_source_folder, folders, files in walk(module_source_path, followlinks=True):
                     # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
-                    folders[:] = [folder for folder in folders if not _should_ignore(folder)]
-                    files = [file for file in files if not _should_ignore(file)]
+                    folders[:] = [folder for folder in folders if not _fnmatch_any(folder, ['__pycache__'])]
+                    files = [file for file in files if not _fnmatch_any(file, ['*.pyc'])]
 
                     # ensure sub target directory exists
                     sub_source_folder = Path(sub_source_folder)

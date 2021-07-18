@@ -4,13 +4,13 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pyscriptpacker",
+    name="pdist",
     author="3D Ninjas GmbH",
     author_email="niklas@3dninjas.io",
-    description="Convert Python packages into a single file.",
+    description="A toolset for distributing Python projects in a convenient way.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/3dninjas/pyscriptpacker",
+    url="https://github.com/3dninjas/pdist",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python",
@@ -18,11 +18,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     license="GPLv3",
-    python_requires=">=2.7",
-    install_requires=[
-        "pyminifier",
-        "virtualenv",
-    ],
+    python_requires=">=3.9",
+    install_requires=[],
     entry_points={
-        'console_scripts':['pyscriptpacker=pyscriptpacker:main'],
-    })
+        "console_scripts": ["pvn=pvn:main"],
+    },
+)
