@@ -1,11 +1,11 @@
 import argparse
 from pathlib import Path
 
-from pvn.process import perform
+from pvendor.process import perform
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='pvn')
+    parser = argparse.ArgumentParser(prog='pvendor')
 
     parser.add_argument(
         '-r',

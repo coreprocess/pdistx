@@ -21,6 +21,6 @@ setuptools.setup(
     python_requires=">=3.9",
     install_requires=[],
     entry_points={
-        "console_scripts": ["pvn=pvn:main"],
+        "console_scripts": ["pvendor=pvendor:main"],
     },
 )
