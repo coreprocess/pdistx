@@ -1,12 +1,12 @@
 # Project information
-site_name: 3dninjas | Pyscriptpacker
-site_url: https://3dninjas.github.io/pyscriptpacker/
+site_name: 3D Ninjas | Python Distribution Tools
+site_url: https://3dninjas.github.io/pdist/
 site_author: 3D Ninjas GmbH
-site_description: Documentation for Pyscriptpacker python package developed by 3dninjas team.
+site_description: Documentation for the Python Distribution Tools developed by the 3D Ninjas team.
 
 # Repository
-repo_name: 3dninjas/pyscriptpacker
-repo_url: https://github.com/3dninjas/pyscriptpacker
+repo_name: 3dninjas/pdist
+repo_url: https://github.com/3dninjas/pdist
 edit_uri: ""
 
 # Copyright
