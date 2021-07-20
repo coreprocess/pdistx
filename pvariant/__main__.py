@@ -68,7 +68,7 @@ def main():
         Path(args.source).resolve(),
         Path(args.target).resolve(),
         arg_define,
-        args.filter,
+        [Path(filter_item).resolve() for filter_item in args.filter],
         args.zip,
     )
 

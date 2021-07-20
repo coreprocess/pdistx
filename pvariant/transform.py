@@ -138,6 +138,7 @@ class VariantTransform(ast.NodeTransformer):
 
 
 def variant_transform(source_path: Path, target_path: Path, definitions: dict):
+
     # read file
     with open(source_path, 'r') as sf:
         source = sf.read()

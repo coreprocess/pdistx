@@ -48,6 +48,7 @@ def perform(
             ])
 
         # clean target folder
+        print(f'Purging {target_folder}...')
         for entry_name in listdir(target_folder):
             if not _fnmatch_any(entry_name, keep_names):
                 entry_path = target_folder.joinpath(entry_name)

@@ -19,10 +19,11 @@ def perform(
     source: Path,
     target: Path,
     definitions: dict,
-    filters: List[str],
+    filters: List[Path],
     zip: bool,
 ):
-    # prune target
+    # purging target
+    print(f'Purging {target}...')
     if target.exists():
         if target.is_dir():
             rmtree(target)
@@ -30,34 +31,37 @@ def perform(
             target.unlink()
 
     # handle source folder
+    print(f'Processing {source}...')
+
     if source.is_dir():
 
         # find all files and folders we want to filter out
         filter_paths = []
         for filter_item in filters:
-            filter_paths += [Path(filter_path).resolve() for filter_path in glob(filter_item, recursive=True)]
+            filter_paths += [Path(filter_path) for filter_path in glob(str(filter_item), recursive=True)]
 
         # process all files
-        for sub_source_folder, folders, files in walk(source, followlinks=True):
-            # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
-            def _folder_filter(folder):
-                return not _fnmatch_any(folder, ['__pycache__', '.git']) and Path(folder).resolve() not in filter_paths
-
-            def _file_filter(file):
-                return not _fnmatch_any(file, ['*.pyc']) and Path(file).resolve() not in filter_paths
-
-            folders[:] = [folder for folder in folders if _folder_filter(folder)]
-            files = [file for file in files if _file_filter(file)]
+        for source_folder, folders, files in walk(source, followlinks=True):
 
             # ensure sub target directory exists
-            sub_source_folder = Path(sub_source_folder)
-            sub_target_folder = target.joinpath(sub_source_folder.relative_to(source))
-            makedirs(sub_target_folder, exist_ok=True)
+            source_folder = Path(source_folder)
+            target_folder = target.joinpath(source_folder.relative_to(source))
+            makedirs(target_folder, exist_ok=True)
+
+            # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
+            def _folder_filter(folder: Path):
+                return not _fnmatch_any(folder.name, ['__pycache__', '.git']) and folder not in filter_paths
+
+            def _file_filter(file: Path):
+                return not _fnmatch_any(file.name, ['*.pyc']) and file not in filter_paths
+
+            folders[:] = [folder for folder in folders if _folder_filter(source_folder.joinpath(folder))]
+            files = [file for file in files if _file_filter(source_folder.joinpath(file))]
 
             # transform or copy file
             for file in files:
-                source_file = sub_source_folder.joinpath(file)
-                target_file = sub_target_folder.joinpath(file)
+                source_file = source_folder.joinpath(file)
+                target_file = target_folder.joinpath(file)
 
                 if file.endswith('.py'):
                     variant_transform(source_file, target_file, definitions)
