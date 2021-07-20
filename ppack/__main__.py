@@ -31,8 +31,8 @@ def main(argv: List[str]):
         '-z',
         dest='zip',
         metavar='zip',
-        action='store_true',
-        help='provide target as zip file',
+        default=None,
+        help='zip file path (target becomes relative path within zip file)',
     )
 
     parser.add_argument(
@@ -42,7 +42,7 @@ def main(argv: List[str]):
 
     parser.add_argument(
         'target',
-        help='target python or zip file (will be cleared)',
+        help='target python (will be cleared)',
     )
 
     args = parser.parse_args(argv)
@@ -51,9 +51,9 @@ def main(argv: List[str]):
         perform(
             Path(args.source),
             Path(args.target),
-            [Path(filter_item).resolve() for filter_item in args.filter],
+            [Path(item) for item in args.filter],
             args.resources,
-            args.do_zip,
+            Path(args.zip) if args.zip else None,
         )
     except Exception as ex:
         print(f'ERROR: {ex}')

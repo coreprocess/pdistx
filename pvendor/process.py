@@ -12,137 +12,146 @@ from .transform import import_transform
 
 
 def perform(
-    requirements_files: List[Path],
-    pip_cmd: str,
-    source_folders: List[Path],
-    target_path: Path,
-    keep_names: List[str],
-    do_zip: bool,
+    requirements: List[Path],
+    pip: str,
+    sources: List[Path],
+    target: Path,
+    keep: List[str],
+    zip_: Path,
 ):
+    # ensure pre-conditions
+    for requirement in requirements:
+        assert requirement.is_file(), 'requirements.txt is expected to be a file'
+
+    for source in sources:
+        assert source.is_dir(), 'source path is expected to be a directory'
+
+    if zip_:
+        assert not target.is_absolute(), 'target path is expected to be relative'
+
     # list of temporary files and folders
-    tmp_paths: List[Path] = []
+    tmps: List[Path] = []
 
     # temporary paths get cleaned automatically at the end of this block
     try:
 
         # detect requirements.txt in target folder
-        if not do_zip:
-            target_requirements_file = target_path.joinpath('requirements.txt')
-            if target_requirements_file.is_file():
-                requirements_files.append(target_requirements_file)
+        if not zip_:
+            requirement = target.joinpath('requirements.txt')
+            if requirement.is_file():
+                requirements.append(requirement)
 
         # create a source folder for each requirements
-        for requirements_file in requirements_files:
+        for requirement in requirements:
             # create temp folder
-            tmp_source_folder = Path(mkdtemp())
-            tmp_paths.append(tmp_source_folder)
-            source_folders.append(tmp_source_folder)
+            install_folder = Path(mkdtemp())
+            tmps.append(install_folder)
+            sources.append(install_folder)
 
             # install packages into temp folder
-            print(f'Installing {requirements_file} to {tmp_source_folder}...')
-            check_call([
-                pip_cmd, 'install', '--upgrade', '--requirement', requirements_file, '--target',
-                str(tmp_source_folder)
-            ])
+            print(f'Installing {requirement} to {install_folder}...')
+            check_call([pip, 'install', '--upgrade', '--requirement', requirement, '--target', str(install_folder)])
 
         # clean target folder
-        print(f'Purging {target_path}...')
-        if target_path.is_dir():
-            # if target is not a zip, remove all except the entries to be kept
-            if not do_zip:
-                for entry_name in listdir(target_path):
-                    if not fnmatch_any(entry_name, keep_names):
-                        entry_path = target_path.joinpath(entry_name)
-                        rmpath(entry_path)
-
-            # if target is a zip, remove entire folder
-            else:
-                rmpath(target_path)
+        if zip_:
+            print(f'Purging {zip_}...')
+            rmpath(zip_)
         else:
-            # remove an existing target file in any case
-            rmpath(target_path)
+            print(f'Purging {target}...')
+            if target.is_dir():
+                # if target is not a zip, remove all except the entries to be kept
+                if not zip_:
+                    for name in listdir(target):
+                        if not fnmatch_any(name, keep):
+                            path = target.joinpath(name)
+                            rmpath(path)
+
+                # if target is a zip, remove entire folder
+                else:
+                    rmpath(target)
+            else:
+                # remove an existing target file in any case
+                rmpath(target)
 
         # build dictionary of modules
         # pylint: disable=unsubscriptable-object
         modules: dict[str, Path] = {}
 
-        for source_folder in source_folders:
-            for entry_name in listdir(source_folder):
+        for source in sources:
+            for entry in listdir(source):
                 # detect module name
-                module_name = None
-                entry_source_path = source_folder.joinpath(entry_name)
+                name = None
+                path = source.joinpath(entry)
 
-                if entry_source_path.is_dir():
-                    if fnmatch_any(entry_name, ['*.dist-info', 'bin', '__pycache__', '.git']):
+                if path.is_dir():
+                    if fnmatch_any(entry, ['*.dist-info', 'bin', '__pycache__', '.git']):
                         continue
-                    module_name = entry_name
+                    name = entry
 
                 else:
-                    if not entry_name.endswith('.py'):
+                    if not entry.endswith('.py'):
                         continue
-                    module_name = entry_name[:-3]
+                    name = entry[:-3]
 
                 # add to module dictionary
-                if module_name in modules:
-                    print(f'Warning: multiple copies of {module_name} detected, skipping redundant one!')
+                if name in modules:
+                    print(f'Warning: multiple copies of {name} detected, skipping redundant one!')
                     continue
 
                 # add to dictionary
-                modules[module_name] = entry_source_path
-
-        module_names = list(modules.keys())
+                modules[name] = path
 
         # create target path
-        if do_zip:
-            tmp_target_path = Path(mkdtemp())
-            tmp_paths.append(tmp_target_path)
+        if zip_:
+            intermediate = Path(mkdtemp())
+            tmps.append(intermediate)
         else:
-            makedirs(target_path, exist_ok=True)
-            tmp_target_path = target_path
+            makedirs(target, exist_ok=True)
+            intermediate = target
 
         # copy and transform all module files
-        for module_name, module_source_path in modules.items():
-            print(f'Processing {module_name} from {module_source_path}...')
+        for name, source in modules.items():
+            print(f'Processing {name} from {source}...')
 
             # handle directory case
-            if module_source_path.is_dir():
-                for cur_source_folder, folders, files in walk(module_source_path, followlinks=True):
+            if source.is_dir():
+                for source_folder, folders, files in walk(source, followlinks=True):
                     # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
                     folders[:] = [folder for folder in folders if not fnmatch_any(folder, ['__pycache__', '.git'])]
                     files = [file for file in files if not fnmatch_any(file, ['*.pyc'])]
 
                     # ensure sub target directory exists
-                    cur_source_folder = Path(cur_source_folder)
-                    cur_folder = cur_source_folder.relative_to(module_source_path)
-                    cur_target_path = tmp_target_path.joinpath(module_name, cur_folder)
-                    makedirs(cur_target_path, exist_ok=True)
+                    source_folder = Path(source_folder)
+                    package_folder = source_folder.relative_to(source)
+                    target_folder = intermediate.joinpath(name, package_folder)
+                    makedirs(target_folder, exist_ok=True)
 
                     # transform or copy files
-                    level = len(cur_folder.parts) + 1
+                    level = len(package_folder.parts) + 1
 
                     for file in files:
-                        source_file = cur_source_folder.joinpath(file)
-                        target_file = cur_target_path.joinpath(file)
+                        source_file = source_folder.joinpath(file)
+                        target_file = target_folder.joinpath(file)
 
                         if file.endswith('.py'):
-                            import_transform(source_file, target_file, level, module_names)
+                            import_transform(source_file, target_file, level, list(modules.keys()))
                         else:
                             copy(source_file, target_file, follow_symlinks=True)
 
             # handle file case
             else:
-                import_transform(module_source_path, tmp_target_path.joinpath(module_name + '.py'), 1, module_names)
+                import_transform(source, intermediate.joinpath(name + '.py'), 1, list(modules.keys()))
 
         # create empty init file in target folder
-        with open(tmp_target_path.joinpath('__init__.py'), 'w'):
+        with open(intermediate.joinpath('__init__.py'), 'w'):
             pass
 
         # zip temporary target path to actual target path
-        if do_zip:
-            zipit(tmp_target_path, target_path, target_path.stem)
+        if zip_:
+            zipit(intermediate, zip_, target)
 
     finally:
         # clean up temporary folders
-        for tmp_path in tmp_paths:
-            print(f'Purging {tmp_path}...')
-            rmpath(tmp_path)
+        for path in tmps:
+            print(f'Purging {path}...')
+            rmpath(path)

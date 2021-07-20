@@ -49,25 +49,25 @@ def main(argv: List[str]):
         '-z',
         dest='zip',
         metavar='zip',
-        action='store_true',
-        help='provide target as zip file',
+        default=None,
+        help='zip file path (target becomes relative path within zip file)',
     )
 
     parser.add_argument(
         'target',
-        help='target folder or zip file (will be cleared, except for the ones to be kept)',
+        help='target folder (will be cleared, except for the ones to be kept)',
     )
 
     args = parser.parse_args(argv)
 
     try:
         perform(
-            [Path(req).resolve() for req in args.requirements],
+            [Path(req) for req in args.requirements],
             args.pip,
-            [Path(req).resolve() for req in args.source],
-            Path(args.target).resolve(),
+            [Path(req) for req in args.source],
+            Path(args.target),
             args.keep if args.keep else ['requirements.txt', '.gitignore'],
-            args.zip,
+            Path(args.zip) if args.zip else None,
         )
     except Exception as ex:
         print(f'ERROR: {ex}')

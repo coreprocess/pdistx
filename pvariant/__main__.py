@@ -32,8 +32,8 @@ def main(argv: List[str]):
         '-z',
         dest='zip',
         metavar='zip',
-        action='store_true',
-        help='provide target as zip file',
+        default=None,
+        help='zip file path (target becomes relative path within zip file)',
     )
 
     parser.add_argument(
@@ -48,7 +48,7 @@ def main(argv: List[str]):
 
     args = parser.parse_args(argv)
 
-    arg_define = {}
+    definitions = {}
 
     for def_ in args.define:
         name, value = [*def_.split('=', 2), None][0:2]
@@ -65,15 +65,15 @@ def main(argv: List[str]):
         else:
             raise ValueError('invalid definition type')
         if name:
-            arg_define[name] = value
+            definitions[name] = value
 
     try:
         perform(
-            Path(args.source).resolve(),
-            Path(args.target).resolve(),
-            arg_define,
-            [Path(filter_item).resolve() for filter_item in args.filter],
-            args.zip,
+            Path(args.source),
+            Path(args.target),
+            definitions,
+            [Path(item) for item in args.filter],
+            Path(args.zip) if args.zip else None,
         )
     except Exception as ex:
         print(f'ERROR: {ex}')

@@ -1,7 +1,6 @@
 from glob import glob
 from os import close, makedirs, walk
 from pathlib import Path
-from posixpath import splitext
 from shutil import copy
 from tempfile import mkdtemp, mkstemp
 from typing import List
@@ -17,32 +16,42 @@ def perform(
     target: Path,
     definitions: dict,
     filters: List[Path],
-    do_zip: bool,
+    zip_: Path,
 ):
+    # ensure pre-conditions
+    assert source.is_file() or source.is_dir(), 'source path is expected to be a file or directory'
+
+    if zip_:
+        assert not target.is_absolute(), 'target path is expected to be relative'
+
     # list of temporary files and folders
-    tmp_paths: List[Path] = []
+    tmps: List[Path] = []
 
     # temporary paths get cleaned automatically at the end of this block
     try:
 
-        # purging target
-        print(f'Purging {target}...')
-        rmpath(target)
+        # purging target or zip
+        if zip_:
+            print(f'Purging {zip_}...')
+            rmpath(zip_)
+        else:
+            print(f'Purging {target}...')
+            rmpath(target)
 
         # create target path
-        if do_zip:
-            # create temporary directory or file
+        if zip_:
+            # create interim directory or file
             if source.is_dir():
-                tmp_target = Path(mkdtemp())
+                intermediate = Path(mkdtemp())
             else:
-                tmp_fh, tmp_target = mkstemp()
+                tmp_fh, intermediate = mkstemp()
                 close(tmp_fh)  # dump handle right away
-                tmp_target = Path(tmp_target)
+                intermediate = Path(intermediate)
 
             # add to tmp paths for cleanup
-            tmp_paths.append(tmp_target)
+            tmps.append(intermediate)
         else:
-            tmp_target = target
+            intermediate = target
 
         # handle source folder
         print(f'Processing {source}...')
@@ -51,18 +60,18 @@ def perform(
 
             # find all files and folders we want to filter out
             filter_paths = []
-            for filter_item in filters:
-                filter_paths += [Path(filter_path) for filter_path in glob(str(filter_item), recursive=True)]
+            for item in filters:
+                filter_paths += [Path(filter_path) for filter_path in glob(str(item), recursive=True)]
 
             # ensure target directory exists
-            makedirs(tmp_target, exist_ok=True)
+            makedirs(intermediate, exist_ok=True)
 
             # process all files
             for source_folder, folders, files in walk(source, followlinks=True):
 
                 # ensure sub target directory exists
                 source_folder = Path(source_folder)
-                target_folder = tmp_target.joinpath(source_folder.relative_to(source))
+                target_folder = intermediate.joinpath(source_folder.relative_to(source))
                 makedirs(target_folder, exist_ok=True)
 
                 # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
@@ -89,21 +98,17 @@ def perform(
         else:
 
             # ensure parent target directory exists
-            makedirs(tmp_target.parent, exist_ok=True)
+            makedirs(intermediate.parent, exist_ok=True)
 
             # transform file
-            variant_transform(source, tmp_target, definitions)
+            variant_transform(source, intermediate, definitions)
 
-        # zip temporary target path to actual target path
-        if do_zip:
-            zipit(
-                tmp_target,
-                target,
-                target.stem + splitext(source) if not source.is_dir() else '',
-            )
+        # zip interim target path to zip path
+        if zip_:
+            zipit(intermediate, zip_, target)
 
     finally:
         # clean up temporary folders
-        for tmp_path in tmp_paths:
-            print(f'Purging {tmp_path}...')
-            rmpath(tmp_path)
+        for path in tmps:
+            print(f'Purging {path}...')
+            rmpath(path)
