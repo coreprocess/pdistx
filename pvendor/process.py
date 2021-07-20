@@ -18,10 +18,13 @@ def _fnmatch_any(name: str, patterns: List[str]):
 
 def perform(
     requirements_files: List[Path],
+    pip_cmd: str,
     source_folders: List[Path],
     target_folder: Path,
-    pip_cmd: str,
+    keep_names: List[str],
+    zip: bool,
 ):
+    # list of temporary source folders
     tmp_source_folders = []
 
     try:
@@ -46,7 +49,7 @@ def perform(
 
         # clean target folder
         for entry_name in listdir(target_folder):
-            if entry_name not in ['requirements.txt', '.gitignore']:
+            if not _fnmatch_any(entry_name, keep_names):
                 entry_path = target_folder.joinpath(entry_name)
                 if entry_path.is_dir() and not entry_path.is_symlink():
                     rmtree(entry_path)
@@ -120,7 +123,8 @@ def perform(
                             copy(source_file, target_file, follow_symlinks=True)
 
         # create empty init file in target folder
-        open(target_folder.joinpath('__init__.py'), 'w').close()
+        with open(target_folder.joinpath('__init__.py'), 'w'):
+            pass
 
     finally:
         # clean up temporary folders

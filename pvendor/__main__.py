@@ -57,12 +57,13 @@ def main():
 
     args = parser.parse_args()
 
-    # TODO: update args
     perform(
         [Path(req).absolute() for req in args.requirements],
+        args.pip,
         [Path(req).absolute() for req in args.source],
         Path(args.target).absolute(),
-        args.pip,
+        args.keep if args.keep else ['requirements.txt', '.gitignore'],
+        args.zip,
     )
 
 
