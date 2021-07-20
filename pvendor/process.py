@@ -98,7 +98,7 @@ def perform(
             else:
                 for sub_source_folder, folders, files in walk(module_source_path, followlinks=True):
                     # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
-                    folders[:] = [folder for folder in folders if not _fnmatch_any(folder, ['__pycache__'])]
+                    folders[:] = [folder for folder in folders if not _fnmatch_any(folder, ['__pycache__', '.git'])]
                     files = [file for file in files if not _fnmatch_any(file, ['*.pyc'])]
 
                     # ensure sub target directory exists

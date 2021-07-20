@@ -9,7 +9,7 @@ def main():
         dest='resources',
         metavar='resources',
         action='store_true',
-        help='create a resources folder with all non-python files',
+        help='create a resources folder with all non-python files (it will be named <target>_resources)',
     )
 
     parser.add_argument(

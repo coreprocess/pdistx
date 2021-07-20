@@ -1,8 +1,7 @@
 import argparse
 from pathlib import Path
-from pprint import pprint
 
-from .process import IfExists, perform
+from .process import perform
 
 
 def main():
@@ -15,6 +14,15 @@ def main():
         action='append',
         default=[],
         help='define variables to be replaced, e.g. -d __VARIANT__=PRO -d __LICENSE_CHECK__:bool=True',
+    )
+
+    parser.add_argument(
+        '-f',
+        dest='filter',
+        metavar='filter',
+        action='append',
+        default=[],
+        help='defines files and folders to be filtered out (glob pattern)',
     )
 
     parser.add_argument(
@@ -37,14 +45,6 @@ def main():
 
     args = parser.parse_args()
 
-    # TODO: update args
-
-    arg_input = Path(args.input).resolve()
-    arg_output = Path(args.output).resolve()
-    arg_ifexists = args.ifexists if args.ifexists else IfExists.replace
-    arg_ignore = args.ignore if len(args.ignore) > 0 else ['.*', '*.pyc']
-    arg_transform = args.transform if len(args.transform) > 0 else ['*.py']
-    arg_copy = args.copy if len(args.copy) > 0 else ['*']
     arg_define = {}
 
     for def_ in args.define:
@@ -64,24 +64,13 @@ def main():
         if name:
             arg_define[name] = value
 
-    print('if exists : ' + arg_ifexists.name)
-    print('ignore    : ' + ', '.join(arg_ignore))
-    print('transform : ' + ', '.join(arg_transform))
-    print('copy      : ' + ', '.join(arg_copy))
-    print('define    : ', end='')
-    pprint(arg_define)
-    print('')
-
     perform(
-        arg_input,
-        arg_output,
-        arg_ifexists,
-        arg_ignore,
-        arg_transform,
-        arg_copy,
+        Path(args.source).resolve(),
+        Path(args.target).resolve(),
         arg_define,
+        args.filter,
+        args.zip,
     )
-    print('done')
 
 
 if __name__ == '__main__':

@@ -1,79 +1,74 @@
-import ast
-from enum import Enum
 from fnmatch import fnmatch
-from os import listdir, makedirs
+from glob import glob
+from os import makedirs, walk
 from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import copy, rmtree
 from typing import List
 
-from .transform import VariantTransform
+from .transform import variant_transform
 
 
-class IfExists(Enum):
-    replace = 1
-    overwrite = 2
-    skip = 3
-
-    def __str__(self):
-        return str(self.name)
-
-    @staticmethod
-    def from_string(s):
-        try:
-            return IfExists[s]
-        except KeyError:
-            raise ValueError()
+def _fnmatch_any(name: str, patterns: List[str]):
+    for pattern in patterns:
+        if fnmatch(name, pattern):
+            return True
+    return False
 
 
 def perform(
-    input_: Path,
-    output: Path,
-    if_exists: IfExists,
-    ignore_patterns: List[str],
-    transform_patterns: List[str],
-    copy_patterns: List[str],
+    source: Path,
+    target: Path,
     definitions: dict,
+    filters: List[str],
+    zip: bool,
 ):
-    if True in [fnmatch(input_.name, pattern) for pattern in ignore_patterns]:
-        print(f'skipping {input_}')
-        return
-
-    if output.exists():
-        if if_exists == IfExists.skip and not input_.is_dir():
-            return
-        if if_exists == IfExists.replace and output.is_dir():
-            rmtree(output)
-        if if_exists == IfExists.overwrite and not input_.is_dir() and output.is_dir():
-            rmtree(output)
-
-    if input_.is_dir():
-        for entry in list(listdir(input_)):
-            perform(
-                input_.joinpath(entry),
-                output.joinpath(entry),
-                if_exists,
-                ignore_patterns,
-                transform_patterns,
-                copy_patterns,
-                definitions,
-            )
-
-    elif input_.is_file():
-
-        if True in [fnmatch(input_.name, pattern) for pattern in transform_patterns]:
-            makedirs(output.parent, exist_ok=True)
-
-            print(f'transforming {input_}')
-            with open(input_, 'rt') as input_file:
-                tree = ast.parse(input_file.read())
-                tree = VariantTransform(definitions).visit(tree)
-                with open(output, 'wt') as output_file:
-                    output_file.write(ast.unparse(tree) + '\n')
-
-        elif True in [fnmatch(input_.name, pattern) for pattern in copy_patterns]:
-            makedirs(output.parent, exist_ok=True)
-            print(f'copying {input_}')
-            copyfile(input_, output)
-
+    # prune target
+    if target.exists():
+        if target.is_dir():
+            rmtree(target)
         else:
-            print(f'ignoring {input_}')
+            target.unlink()
+
+    # handle source folder
+    if source.is_dir():
+
+        # find all files and folders we want to filter out
+        filter_paths = []
+        for filter_item in filters:
+            filter_paths += [Path(filter_path).resolve() for filter_path in glob(filter_item, recursive=True)]
+
+        # process all files
+        for sub_source_folder, folders, files in walk(source, followlinks=True):
+            # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
+            def _folder_filter(folder):
+                return not _fnmatch_any(folder, ['__pycache__', '.git']) and Path(folder).resolve() not in filter_paths
+
+            def _file_filter(file):
+                return not _fnmatch_any(file, ['*.pyc']) and Path(file).resolve() not in filter_paths
+
+            folders[:] = [folder for folder in folders if _folder_filter(folder)]
+            files = [file for file in files if _file_filter(file)]
+
+            # ensure sub target directory exists
+            sub_source_folder = Path(sub_source_folder)
+            sub_target_folder = target.joinpath(sub_source_folder.relative_to(source))
+            makedirs(sub_target_folder, exist_ok=True)
+
+            # transform or copy file
+            for file in files:
+                source_file = sub_source_folder.joinpath(file)
+                target_file = sub_target_folder.joinpath(file)
+
+                if file.endswith('.py'):
+                    variant_transform(source_file, target_file, definitions)
+                else:
+                    copy(source_file, target_file, follow_symlinks=True)
+
+    # handle source file
+    elif source.is_file():
+
+        # ensure sub target directory exists
+        makedirs(target.parent, exist_ok=True)
+
+        # transform file
+        variant_transform(source, target, definitions)

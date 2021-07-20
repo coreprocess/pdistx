@@ -1,5 +1,6 @@
 import ast
 from functools import reduce
+from pathlib import Path
 
 
 class VariantTransform(ast.NodeTransformer):
@@ -134,3 +135,19 @@ class VariantTransform(ast.NodeTransformer):
                 node.lineno, ', '.join(used_definitions)))
 
         return node
+
+
+def variant_transform(source_path: Path, target_path: Path, definitions: dict):
+    # read file
+    with open(source_path, 'r') as sf:
+        source = sf.read()
+
+    # transform
+    tree = ast.parse(source, filename=str(source_path), type_comments=True)
+    tree = VariantTransform(definitions).visit(tree)
+    tree = ast.fix_missing_locations(tree)
+    target = ast.unparse(tree)
+
+    # write file
+    with open(target_path, 'w') as tf:
+        tf.write(target)
