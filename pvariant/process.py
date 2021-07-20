@@ -1,4 +1,3 @@
-from glob import glob
 from os import close, makedirs, walk
 from pathlib import Path
 from shutil import copy
@@ -58,28 +57,23 @@ def perform(
 
         if source.is_dir():
 
-            # find all files and folders we want to filter out
-            filter_paths = []
-            for item in filters:
-                filter_paths += [Path(filter_path) for filter_path in glob(str(item), recursive=True)]
-
             # ensure target directory exists
             makedirs(intermediate, exist_ok=True)
 
             # process all files
             for source_folder, folders, files in walk(source, followlinks=True):
 
-                # ensure sub target directory exists
+                # ensure target directory exists
                 source_folder = Path(source_folder)
                 target_folder = intermediate.joinpath(source_folder.relative_to(source))
                 makedirs(target_folder, exist_ok=True)
 
                 # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
                 def _folder_filter(folder: Path):
-                    return not fnmatch_any(folder.name, ['__pycache__', '.git']) and folder not in filter_paths
+                    return not fnmatch_any(folder.name, ['__pycache__', '.git']) and folder not in filters
 
                 def _file_filter(file: Path):
-                    return not fnmatch_any(file.name, ['*.pyc']) and file not in filter_paths
+                    return not fnmatch_any(file.name, ['*.pyc']) and file not in filters
 
                 folders[:] = [folder for folder in folders if _folder_filter(source_folder.joinpath(folder))]
                 files = [file for file in files if _file_filter(source_folder.joinpath(file))]
@@ -103,7 +97,7 @@ def perform(
             # transform file
             variant_transform(source, intermediate, definitions)
 
-        # zip interim target path to zip path
+        # zip intermediate path to zip path
         if zip_:
             zipit(intermediate, zip_, target)
 

@@ -1,5 +1,7 @@
 import argparse
 import sys
+from glob import glob
+from os.path import join
 from pathlib import Path
 from traceback import print_tb
 from typing import List
@@ -72,7 +74,7 @@ def main(argv: List[str]):
             Path(args.source),
             Path(args.target),
             definitions,
-            [Path(item) for item in args.filter],
+            [Path(path) for pattern in args.filter for path in glob(join(args.source, pattern), recursive=True)],
             Path(args.zip) if args.zip else None,
         )
     except Exception as ex:
