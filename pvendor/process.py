@@ -1,11 +1,11 @@
 from os import listdir, makedirs, walk
 from pathlib import Path
-from shutil import copy, rmtree
+from shutil import copy
 from subprocess import check_call
 from tempfile import mkdtemp
 from typing import List
 
-from pdist.utils.path import fnmatch_any
+from pdist.utils.path import fnmatch_any, rmpath
 from pdist.utils.zip import zipit
 
 from .transform import import_transform
@@ -53,17 +53,14 @@ def perform(
                 for entry_name in listdir(target_path):
                     if not fnmatch_any(entry_name, keep_names):
                         entry_path = target_path.joinpath(entry_name)
-                        if entry_path.is_dir() and not entry_path.is_symlink():
-                            rmtree(entry_path)
-                        else:
-                            entry_path.unlink()
+                        rmpath(entry_path)
 
             # if target is a zip, remove entire folder
             else:
-                rmtree(target_path)
+                rmpath(target_path)
         else:
-            # unlink an existing target file in any case
-            target_path.unlink()
+            # remove an existing target file in any case
+            rmpath(target_path)
 
         # build dictionary of modules
         # pylint: disable=unsubscriptable-object
@@ -148,7 +145,4 @@ def perform(
         # clean up temporary folders
         for tmp_path in tmp_paths:
             print(f'Purging {tmp_path}...')
-            if tmp_path.is_dir():
-                rmtree(tmp_path, True)
-            else:
-                tmp_path.unlink()
+            rmpath(tmp_path)

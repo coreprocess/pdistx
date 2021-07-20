@@ -1,6 +1,7 @@
 import argparse
 import sys
 from pathlib import Path
+from traceback import print_tb
 from typing import List
 
 from pvendor.process import perform
@@ -59,14 +60,19 @@ def main(argv: List[str]):
 
     args = parser.parse_args(argv)
 
-    perform(
-        [Path(req).resolve() for req in args.requirements],
-        args.pip,
-        [Path(req).resolve() for req in args.source],
-        Path(args.target).resolve(),
-        args.keep if args.keep else ['requirements.txt', '.gitignore'],
-        args.zip,
-    )
+    try:
+        perform(
+            [Path(req).resolve() for req in args.requirements],
+            args.pip,
+            [Path(req).resolve() for req in args.source],
+            Path(args.target).resolve(),
+            args.keep if args.keep else ['requirements.txt', '.gitignore'],
+            args.zip,
+        )
+    except Exception as ex:
+        print(f'ERROR: {ex}')
+        print_tb(ex)
+        sys.exit(1)
 
     sys.exit(0)
 

@@ -1,6 +1,7 @@
 import argparse
 import sys
 from pathlib import Path
+from traceback import print_tb
 from typing import List
 
 from .process import perform
@@ -66,13 +67,18 @@ def main(argv: List[str]):
         if name:
             arg_define[name] = value
 
-    perform(
-        Path(args.source).resolve(),
-        Path(args.target).resolve(),
-        arg_define,
-        [Path(filter_item).resolve() for filter_item in args.filter],
-        args.zip,
-    )
+    try:
+        perform(
+            Path(args.source).resolve(),
+            Path(args.target).resolve(),
+            arg_define,
+            [Path(filter_item).resolve() for filter_item in args.filter],
+            args.zip,
+        )
+    except Exception as ex:
+        print(f'ERROR: {ex}')
+        print_tb(ex)
+        sys.exit(1)
 
     sys.exit(0)
 

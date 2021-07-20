@@ -2,11 +2,11 @@ from glob import glob
 from os import close, makedirs, walk
 from pathlib import Path
 from posixpath import splitext
-from shutil import copy, rmtree
+from shutil import copy
 from tempfile import mkdtemp, mkstemp
 from typing import List
 
-from pdist.utils.path import fnmatch_any
+from pdist.utils.path import fnmatch_any, rmpath
 from pdist.utils.zip import zipit
 
 from .transform import variant_transform
@@ -27,11 +27,7 @@ def perform(
 
         # purging target
         print(f'Purging {target}...')
-        if target.exists():
-            if target.is_dir():
-                rmtree(target)
-            else:
-                target.unlink()
+        rmpath(target)
 
         # create target path
         if do_zip:
@@ -110,7 +106,4 @@ def perform(
         # clean up temporary folders
         for tmp_path in tmp_paths:
             print(f'Purging {tmp_path}...')
-            if tmp_path.is_dir():
-                rmtree(tmp_path, True)
-            else:
-                tmp_path.unlink()
+            rmpath(tmp_path)

@@ -1,6 +1,10 @@
 import argparse
 import sys
+from pathlib import Path
+from traceback import print_tb
 from typing import List
+
+from ppack.process import perform
 
 
 def main(argv: List[str]):
@@ -15,6 +19,15 @@ def main(argv: List[str]):
     )
 
     parser.add_argument(
+        '-f',
+        dest='filter',
+        metavar='filter',
+        action='append',
+        default=[],
+        help='defines files and folders to be filtered out (glob pattern)',
+    )
+
+    parser.add_argument(
         '-z',
         dest='zip',
         metavar='zip',
@@ -24,7 +37,7 @@ def main(argv: List[str]):
 
     parser.add_argument(
         'source',
-        help='source folder',
+        help='source package path',
     )
 
     parser.add_argument(
@@ -34,7 +47,18 @@ def main(argv: List[str]):
 
     args = parser.parse_args(argv)
 
-    ...
+    try:
+        perform(
+            Path(args.source),
+            Path(args.target),
+            [Path(filter_item).resolve() for filter_item in args.filter],
+            args.resources,
+            args.do_zip,
+        )
+    except Exception as ex:
+        print(f'ERROR: {ex}')
+        print_tb(ex)
+        sys.exit(1)
 
     sys.exit(0)
 
