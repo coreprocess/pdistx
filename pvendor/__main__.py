@@ -30,17 +30,34 @@ def main():
         dest='pip',
         metavar='pip',
         default='pip',
-        help='pip command',
+        help='pip command (defaults to pip)',
+    )
+
+    parser.add_argument(
+        '-k',
+        dest='keep',
+        metavar='keep',
+        action='append',
+        default=[],
+        help='files or folders to be kept in the target folder (defaults to requirements.txt and .gitignore)',
+    )
+
+    parser.add_argument(
+        '-z',
+        dest='zip',
+        metavar='zip',
+        action='store_true',
+        help='provide target as zip file',
     )
 
     parser.add_argument(
         'target',
-        help='target folder'
-        ' (will be cleared, except for an existing requirements.txt)',
+        help='target folder or zip file (will be cleared, except for the ones to be kept)',
     )
 
     args = parser.parse_args()
 
+    # TODO: update args
     perform(
         [Path(req).absolute() for req in args.requirements],
         [Path(req).absolute() for req in args.source],
