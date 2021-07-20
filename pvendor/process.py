@@ -6,7 +6,7 @@ from tempfile import mkdtemp
 from typing import List
 
 from pdist.utils.path import fnmatch_any
-from pdist.utils.zip import zip_dir
+from pdist.utils.zip import zipit
 
 from .transform import import_transform
 
@@ -22,7 +22,9 @@ def perform(
     # list of temporary files and folders
     tmp_paths: List[Path] = []
 
+    # temporary paths get cleaned automatically at the end of this block
     try:
+
         # detect requirements.txt in target folder
         if not do_zip:
             target_requirements_file = target_path.joinpath('requirements.txt')
@@ -78,13 +80,10 @@ def perform(
                         continue
                     module_name = entry_name
 
-                elif entry_source_path.is_file():
+                else:
                     if not entry_name.endswith('.py'):
                         continue
                     module_name = entry_name[:-3]
-
-                else:
-                    continue
 
                 # add to module dictionary
                 if module_name in modules:
@@ -96,23 +95,20 @@ def perform(
 
         module_names = list(modules.keys())
 
-        # create a temporary target path in case the actual target is a zip
+        # create target path
         if do_zip:
             tmp_target_path = Path(mkdtemp())
             tmp_paths.append(tmp_target_path)
         else:
+            makedirs(target_path, exist_ok=True)
             tmp_target_path = target_path
 
         # copy and transform all module files
         for module_name, module_source_path in modules.items():
             print(f'Processing {module_name} from {module_source_path}...')
 
-            # handle file case
-            if module_source_path.is_file():
-                import_transform(module_source_path, tmp_target_path.joinpath(module_name + '.py'), 1, module_names)
-
             # handle directory case
-            else:
+            if module_source_path.is_dir():
                 for cur_source_folder, folders, files in walk(module_source_path, followlinks=True):
                     # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
                     folders[:] = [folder for folder in folders if not fnmatch_any(folder, ['__pycache__', '.git'])]
@@ -136,13 +132,17 @@ def perform(
                         else:
                             copy(source_file, target_file, follow_symlinks=True)
 
+            # handle file case
+            else:
+                import_transform(module_source_path, tmp_target_path.joinpath(module_name + '.py'), 1, module_names)
+
         # create empty init file in target folder
         with open(tmp_target_path.joinpath('__init__.py'), 'w'):
             pass
 
         # zip temporary target path to actual target path
         if do_zip:
-            zip_dir(tmp_target_path, target_path)
+            zipit(tmp_target_path, target_path, target_path.stem)
 
     finally:
         # clean up temporary folders
