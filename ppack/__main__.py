@@ -1,7 +1,9 @@
 import argparse
+import sys
+from typing import List
 
 
-def main():
+def main(argv: List[str]):
     parser = argparse.ArgumentParser(prog='ppack')
 
     parser.add_argument(
@@ -30,10 +32,12 @@ def main():
         help='target python or zip file (will be cleared)',
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     ...
 
+    sys.exit(0)
+
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
