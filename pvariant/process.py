@@ -1,18 +1,12 @@
-from fnmatch import fnmatch
 from glob import glob
 from os import makedirs, walk
 from pathlib import Path
 from shutil import copy, rmtree
 from typing import List
 
+from pdist.utils.path import fnmatch_any
+
 from .transform import variant_transform
-
-
-def _fnmatch_any(name: str, patterns: List[str]):
-    for pattern in patterns:
-        if fnmatch(name, pattern):
-            return True
-    return False
 
 
 def perform(
@@ -20,7 +14,7 @@ def perform(
     target: Path,
     definitions: dict,
     filters: List[Path],
-    zip: bool,
+    do_zip: bool,
 ):
     # purging target
     print(f'Purging {target}...')
@@ -50,10 +44,10 @@ def perform(
 
             # filter entries to be ignored (folders need to be modified in-place to take effect for os.walk)
             def _folder_filter(folder: Path):
-                return not _fnmatch_any(folder.name, ['__pycache__', '.git']) and folder not in filter_paths
+                return not fnmatch_any(folder.name, ['__pycache__', '.git']) and folder not in filter_paths
 
             def _file_filter(file: Path):
-                return not _fnmatch_any(file.name, ['*.pyc']) and file not in filter_paths
+                return not fnmatch_any(file.name, ['*.pyc']) and file not in filter_paths
 
             folders[:] = [folder for folder in folders if _folder_filter(source_folder.joinpath(folder))]
             files = [file for file in files if _file_filter(source_folder.joinpath(file))]
