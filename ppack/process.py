@@ -8,6 +8,8 @@ from typing import Dict, List
 from pdist.utils.path import fnmatch_any, rmpath
 from pdist.utils.zip import zipit
 
+from .transform import file_to_resource_transform
+
 
 def perform(
     source: Path,
@@ -50,6 +52,8 @@ def perform(
 
         if resources:
             resources_root = intermediate.joinpath(target.parent, target.stem + '_resources')
+            print(f'Purging {resources_root}...')
+            rmpath(resources_root)
 
         # process all files
         modules: Dict[str, (str, bool)] = {}
@@ -89,7 +93,10 @@ def perform(
 
                     # load module code
                     with open(source_file) as source_handle:
-                        modules[name] = (source_handle.read(), is_package)
+                        code = source_handle.read()
+                        if resources:
+                            code = file_to_resource_transform(code)
+                        modules[name] = (code, is_package)
 
                 # copy resource files
                 else:

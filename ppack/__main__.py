@@ -17,7 +17,7 @@ def main(argv: List[str] = sys.argv[1:]):
         '-r',
         dest='resources',
         action='store_true',
-        help='create a resources folder with all non-python files (it will be named <target>_resources)',
+        help='create a resources folder with all non-python files (it will be named <target>_resources and be cleared)',
     )
 
     parser.add_argument(
