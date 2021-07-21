@@ -112,11 +112,13 @@ def perform(
         # ensure stable ordering
         modules = OrderedDict(sorted(modules.items(), key=lambda i: i[0]))
 
-        # determine root module
-        root_module = modules.get(f'{source.name}.__main__')
+        # determine bootstrap module
+        mode = 'main'
+        bootstrap = modules.get(f'{source.name}.__main__', None)
 
-        if not root_module:
-            root_module = modules[source.name]
+        if not bootstrap:
+            mode = 'module'
+            bootstrap = modules[source.name]
 
         # generate hash
         modules = repr(modules)
@@ -129,12 +131,14 @@ def perform(
         for i in range(len(code)):
             if 'modules = {}' in code[i]:
                 code[i] = 'modules = ' + modules
-            elif '__pack_name__ = \'\'' in code[i]:
-                code[i] = '__pack_name__ = ' + repr(target.name)
+            elif '__pack_mode__ = \'\'' in code[i]:
+                code[i] = '__pack_mode__ = ' + repr(mode)
+            elif '__pack_module__ = \'\'' in code[i]:
+                code[i] = '__pack_module__ = ' + repr(source.name)
             elif '__pack_hash__ = \'\'' in code[i]:
                 code[i] = '__pack_hash__ = ' + repr(hash_)
 
-        code = ''.join(code) + '\n\n' + root_module
+        code = ''.join(code) + '\n\n' + bootstrap
 
         with open(packed, 'w') as file:
             file.write(code)

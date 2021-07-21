@@ -1,4 +1,5 @@
-__pack_name__ = ''
+__pack_mode__ = ''
+__pack_module__ = ''
 __pack_hash__ = ''
 __pack_token__ = ''
 
@@ -25,7 +26,7 @@ def __pack_loader__():
 
     # determine module base
     if __name__ == '__main__':
-        base = '{}_{}_{}'.format(__pack_name__, __pack_hash__, __pack_token__)
+        base = '{}_{}_{}'.format(__pack_module__, __pack_hash__, __pack_token__)
     else:
         base = '{}.{}_{}'.format(__name__, __pack_hash__, __pack_token__)
 
@@ -55,70 +56,59 @@ def __pack_loader__():
 
         globals_ = globals if globals else {}
 
-        # determine load path
+        # determine load name
         if level > 0:
-            path = globals_.get('__package__', globals_['__name__']).split('.')
+            load = globals_.get('__package__', globals_['__name__']).split('.')
             if level > 1:
-                path = path[:-(level - 1)]
+                load = load[:-(level - 1)]
         else:
-            path = []
-        path += name.split('.') if name else []
-
-        # skip load requests not originating from the pack
-        if globals_.get('__pack_name__', None) != __pack_name__ \
-                    or globals_.get('__pack_hash__', None) != __pack_hash__ \
-                    or globals_.get('__pack_token__', None) != __pack_token__:
-            path = None
+            load = []
+        load += name.split('.') if name else []
 
         # remove prefix if given
-        if '.'.join(path) == base or '.'.join(path).startswith(base + '.'):
-            path = path[len(base.split('.')):]
+        if '.'.join(load) == base or '.'.join(load).startswith(base + '.'):
+            load = load[len(base.split('.')):]
 
-        # try to load and return module if load path is given
-        if path is not None:
+        # if packed in module mode, this module is this module
+        if __pack_mode__ == 'module' and '.'.join(load) == __pack_module__:
+            return sys.modules[__name__]
+
+        # try to load and return module if load name is given
+        if load:
 
             # load modules along the path
-            for depth in range(len(path)):
-                load_module(
-                    '.'.join(path[0:depth + 1]),
-                    path[depth],
-                    '.'.join(path[0:depth]) if depth > 0 else None,
-                    True,
-                )
+            for depth in range(len(load)):
+                load_module('.'.join(load[0:depth + 1]), True)
 
             # load modules referenced by the from list
             if fromlist:
                 for from_item in fromlist:
                     if from_item == '*':
-                        all_list = get_all_list('.'.join(path) if path else None,)
+                        all_list = get_all_list('.'.join(load) if load else None)
                         for all_item in all_list:
-                            load_module(
-                                '.'.join(path + [all_item]),
-                                all_item,
-                                '.'.join(path) if path else None,
-                                False,
-                            )
-                    load_module(
-                        '.'.join(path + [from_item]),
-                        from_item,
-                        '.'.join(path) if path else None,
-                        False,
-                    )
+                            load_module('.'.join(load + [all_item]), False)
+                    load_module('.'.join(load + [from_item]), False)
 
             # try to return the requested module
             if not fromlist:
-                request_name = qualify(path[0])
+                request = qualify(load[0])
             else:
-                request_name = qualify('.'.join(path))
+                request = qualify('.'.join(load))
 
-            if request_name in sys.modules:
-                return sys.modules[request_name]
+            if request in sys.modules:
+                return sys.modules[request]
 
         # delegate import to original routine
         return __import__(name, globals, locals, fromlist, level)
 
     # utility: load module from code
-    def load_module(name, local, parent, override):
+    def load_module(name, override):
+
+        # get local and parent name
+        local = name.split('.')[-1]
+        parent = '.'.join(name.split('.')[:-1])
+        if not parent:
+            parent = None
 
         # qualified names
         qualified_name = qualify(name)
@@ -133,19 +123,17 @@ def __pack_loader__():
                 return
 
         # check if module is available
-        module_lookup = modules.get(name, None)
+        code, is_package = modules.get(name, (None, None))
 
-        if not module_lookup:
+        if code is None:
             return
-
-        module_code, is_package = module_lookup
 
         # resource path
         resource_path = gen_resource_path(name, is_package)
 
         # create module object
         module = sys.modules[qualified_name] = imp.new_module(qualified_name)
-        setattr(module, '__pack_name__', __pack_name__)
+        setattr(module, '__pack_module__', __pack_module__)
         setattr(module, '__pack_hash__', __pack_hash__)
         setattr(module, '__pack_token__', __pack_token__)
         setattr(module, '__name__', qualified_name)
@@ -154,7 +142,7 @@ def __pack_loader__():
             setattr(module, '__package__', qualified_name)
             setattr(module, '__path__', [resource_path])
         else:
-            setattr(module, '__package__', sys.modules[qualified_parent].__package__)
+            setattr(module, '__package__', qualified_parent)
 
         # import hook for modules using __import__ the wrong way
         def pack_import_hook(name, globals=None, locals=None, fromlist=(), level=0):
@@ -169,11 +157,8 @@ def __pack_loader__():
         setattr(module, '__import__', pack_import_hook)
 
         # inject code
-        code = compile(module_code, resource_path, 'exec')
+        code = compile(code, resource_path, 'exec')
         exec(code, module.__dict__)
-
-        # link to parent
-        setattr(sys.modules[qualified_parent], local, module)
 
     # import hook for modules using __import__ the wrong way
     def pack_import_hook_root(name, globals=None, locals=None, fromlist=(), level=0):
@@ -211,7 +196,7 @@ def __pack_loader__():
                 resource_path = gen_resource_path(self._name, self._is_package)
 
                 # create module object
-                setattr(module, '__pack_name__', __pack_name__)
+                setattr(module, '__pack_module__', __pack_module__)
                 setattr(module, '__pack_hash__', __pack_hash__)
                 setattr(module, '__pack_token__', __pack_token__)
 
@@ -245,32 +230,37 @@ def __pack_loader__():
                 path = list(path)
 
                 # handle only imports from the pack
-                if path != list(__path__) and (
-                       not len(path) > 0 \
-                    or not isinstance(path[0], str) \
-                    or not path[0].startswith(resource_root)
-                    or not path[0].endswith('.py-{}-{}'.format(__pack_hash__, __pack_token__))
-                ):
+                from_this = path == list(__path__)
+                from_pack = (
+                        len(path) > 0 \
+                    and isinstance(path[0], str) \
+                    and path[0].startswith(resource_root) \
+                    and path[0].endswith('.py-{}-{}'.format(__pack_hash__, __pack_token__))
+                )
+
+                if not from_this and not from_pack:
                     return None
 
-                # construct name
-                name = fullname.split('.')
+                # remove prefix if given
+                if fullname == base:
+                    load = None
+                elif fullname.startswith(base + '.'):
+                    load = fullname[len(base) + 1:]
 
-                if '.'.join(name) == base or '.'.join(name).startswith(base + '.'):
-                    name = name[len(base.split('.')):]
-
-                name = '.'.join(name)
+                # if packed in module mode, this module is this module (we cannot handle it here)
+                if __pack_mode__ == 'module' and load == __pack_module__:
+                    return None
 
                 # get module code
-                module_code = modules.get(name, None)
-                if not module_code:
+                code, is_package = modules.get(load, (None, None))
+                if code is None:
                     return None
 
                 # create spec
                 return importlib.util.spec_from_loader(
-                    qualify(name),
-                    loader=PackLoader(name, module_code[0], module_code[1]),
-                    is_package=True if module_code[1] else None,
+                    qualify(load),
+                    loader=PackLoader(load, code, is_package),
+                    is_package=True if is_package else None,
                 )
 
         sys.meta_path.insert(0, PackMetaPathFinder())
