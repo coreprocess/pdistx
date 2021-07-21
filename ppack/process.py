@@ -52,7 +52,7 @@ def perform(
             resources_root = intermediate.joinpath(target.parent, target.stem + '_resources')
 
         # process all files
-        modules: Dict[str, str] = {}
+        modules: Dict[str, (str, bool)] = {}
 
         for source_folder, folders, files in walk(source, followlinks=True):
 
@@ -80,11 +80,17 @@ def perform(
                 # read module codes
                 if file.endswith('.py'):
                     # determine module name
-                    name = '.'.join(list(package_folder.parts) + [file.split('.')[0]] if file != '__init__.py' else [])
+                    is_package = file == '__init__.py'
+
+                    name = [source.name]
+                    name += list(package_folder.parts)
+                    name += [file.split('.')[0]] if not is_package else []
+
+                    name = '.'.join(name)
 
                     # load module code
                     with open(source_file) as source_handle:
-                        modules[name] = source_handle.read()
+                        modules[name] = (source_handle.read(), is_package)
 
                 # copy resource files
                 else:
@@ -98,23 +104,23 @@ def perform(
         # create all missing intermediate packages
         for name in list(modules.keys()):
             parts = name.split('.')
-            for i in range(len(parts)):
+            for i in range(1, len(parts)):
                 package = '.'.join(parts[0:i])
                 if package not in modules:
-                    modules[package] = ''
+                    modules[package] = ('', True)
 
         # ensure stable ordering
         modules = OrderedDict(sorted(modules.items(), key=lambda i: i[0]))
 
         # determine root module
-        root_module = modules.get('__main__')
+        root_module = modules.get(f'{source.name}.__main__')
 
         if not root_module:
-            root_module = modules['']
+            root_module = modules[source.name]
 
         # generate hash
         modules = repr(modules)
-        hash = sha256(modules).hexdigest()
+        hash_ = sha256(modules).hexdigest()
 
         # create packed file
         with open(Path(__file__).parent.joinpath('template.py'), 'r') as file:
@@ -123,10 +129,10 @@ def perform(
         for i in range(len(code)):
             if 'modules = {}' in code[i]:
                 code[i] = 'modules = ' + modules
-            elif '__PACK_NAME__ = \'\'' in code[i]:
-                code[i] = '__PACK_NAME__ = ' + repr(target.name)
-            elif '__PACK_HASH__ = \'\'' in code[i]:
-                code[i] = '__PACK_HASH__ = ' + repr(hash)
+            elif '__pack_name__ = \'\'' in code[i]:
+                code[i] = '__pack_name__ = ' + repr(target.name)
+            elif '__pack_hash__ = \'\'' in code[i]:
+                code[i] = '__pack_hash__ = ' + repr(hash_)
 
         code = ''.join(code) + '\n\n' + root_module
 
