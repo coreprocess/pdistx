@@ -16,7 +16,7 @@ def __pack_loader__():
 
     # generate token
     global __pack_token__
-    __pack_token__ = binascii.hexlify(os.urandom(8))
+    __pack_token__ = str(binascii.hexlify(os.urandom(4)))
 
     # modules will be injected here
     modules = {}
@@ -29,6 +29,12 @@ def __pack_loader__():
         base = '{}_{}_{}'.format(__pack_module__, __pack_hash__, __pack_token__)
     else:
         base = '{}.{}_{}'.format(__name__, __pack_hash__, __pack_token__)
+
+    # construct base module
+    sys.modules[base] = imp.new_module(base)
+    setattr(sys.modules[base], '__name__', base)
+    setattr(sys.modules[base], '__package__', base)
+    setattr(sys.modules[base], '__path__', [])
 
     # utility: qualify name
     def qualify(name):
@@ -65,40 +71,41 @@ def __pack_loader__():
             load = []
         load += name.split('.') if name else []
 
+        # return base module
+        if '.'.join(load) == base:
+            return sys.modules[base]
+
         # remove prefix if given
-        if '.'.join(load) == base or '.'.join(load).startswith(base + '.'):
+        if '.'.join(load).startswith(base + '.'):
             load = load[len(base.split('.')):]
 
-        # if packed in module mode, this module is this module
+        # return this module
         if __pack_mode__ == 'module' and '.'.join(load) == __pack_module__:
             return sys.modules[__name__]
 
-        # try to load and return module if load name is given
-        if load:
+        # load modules along the path
+        for depth in range(len(load)):
+            load_module('.'.join(load[0:depth + 1]), True)
 
-            # load modules along the path
-            for depth in range(len(load)):
-                load_module('.'.join(load[0:depth + 1]), True)
+        # load modules referenced by the from list
+        if fromlist:
+            for from_item in fromlist:
+                if from_item == '*':
+                    all_list = get_all_list('.'.join(load) if load else None)
+                    for all_item in all_list:
+                        load_module('.'.join(load + [all_item]), False)
+                load_module('.'.join(load + [from_item]), False)
 
-            # load modules referenced by the from list
-            if fromlist:
-                for from_item in fromlist:
-                    if from_item == '*':
-                        all_list = get_all_list('.'.join(load) if load else None)
-                        for all_item in all_list:
-                            load_module('.'.join(load + [all_item]), False)
-                    load_module('.'.join(load + [from_item]), False)
+        # try to return the requested module
+        if not fromlist:
+            request = qualify(load[0])
+        else:
+            request = qualify('.'.join(load))
 
-            # try to return the requested module
-            if not fromlist:
-                request = qualify(load[0])
-            else:
-                request = qualify('.'.join(load))
+        if request in sys.modules:
+            return sys.modules[request]
 
-            if request in sys.modules:
-                return sys.modules[request]
-
-        # delegate import to original routine
+        # fallback to original import
         return __import__(name, globals, locals, fromlist, level)
 
     # utility: load module from code
@@ -164,7 +171,7 @@ def __pack_loader__():
         except:
             # remove module in case load failed
             del sys.modules[qualified_name]
-            
+
         else:
             # link to parent in case load succeeded
             setattr(sys.modules[qualified_parent], local, module)
@@ -250,13 +257,15 @@ def __pack_loader__():
                 if not from_this and not from_pack:
                     return None
 
-                # remove prefix if given
+                # the base cannot be loaded
                 if fullname == base:
-                    load = None
-                elif fullname.startswith(base + '.'):
+                    return None
+
+                # remove prefix if given
+                if fullname.startswith(base + '.'):
                     load = fullname[len(base) + 1:]
 
-                # if packed in module mode, this module is this module (we cannot handle it here)
+                # this module cannot be loaded
                 if __pack_mode__ == 'module' and load == __pack_module__:
                     return None
 

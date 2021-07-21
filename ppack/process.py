@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from hashlib import sha256
+from hashlib import md5
 from os import makedirs, walk
 from pathlib import Path
 from shutil import copy
@@ -122,7 +122,7 @@ def perform(
 
         # generate hash
         modules = repr(modules)
-        hash_ = sha256(modules).hexdigest()
+        hash_ = md5(modules).hexdigest()
 
         # create packed file
         with open(Path(__file__).parent.joinpath('template.py'), 'r') as file:
