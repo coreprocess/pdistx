@@ -80,7 +80,7 @@ def main(argv: List[str] = sys.argv[1:]):
         )
     except Exception as ex:
         print(f'ERROR: {ex}')
-        print_tb(ex)
+        print_tb(ex.__traceback__)
         sys.exit(1)
 
     sys.exit(0)

@@ -114,37 +114,39 @@ def perform(
 
         # determine bootstrap module
         mode = 'main'
-        bootstrap = modules.get(f'{source.name}.__main__', None)
+        bootstrap, _ = modules.get(f'{source.name}.__main__', (None, None))
 
-        if not bootstrap:
+        if bootstrap is None:
             mode = 'module'
-            bootstrap = modules[source.name]
+            bootstrap, _ = modules[source.name]
 
         # generate hash
         modules = repr(modules)
-        hash_ = md5(modules).hexdigest()
+        hash_ = md5(modules.encode('utf-8')).hexdigest()
 
         # create packed file
         with open(Path(__file__).parent.joinpath('template.py'), 'r') as file:
             code = file.readlines()
 
         for i in range(len(code)):
-            if 'modules = {}' in code[i]:
-                code[i] = 'modules = ' + modules
-            elif '__pack_mode__ = \'\'' in code[i]:
-                code[i] = '__pack_mode__ = ' + repr(mode)
-            elif '__pack_module__ = \'\'' in code[i]:
-                code[i] = '__pack_module__ = ' + repr(source.name)
-            elif '__pack_hash__ = \'\'' in code[i]:
-                code[i] = '__pack_hash__ = ' + repr(hash_)
+            if '    modules = {}\n' == code[i]:
+                code[i] = '    modules = ' + modules + '\n'
+            elif '__pack_mode__ = \'\'\n' == code[i]:
+                code[i] = '__pack_mode__ = ' + repr(mode) + '\n'
+            elif '__pack_module__ = \'\'\n' == code[i]:
+                code[i] = '__pack_module__ = ' + repr(source.name) + '\n'
+            elif '__pack_hash__ = \'\'\n' == code[i]:
+                code[i] = '__pack_hash__ = ' + repr(hash_) + '\n'
 
         code = ''.join(code) + '\n\n' + bootstrap
 
+        print(f'Writing {packed}...')
         with open(packed, 'w') as file:
             file.write(code)
 
         # zip intermediate path to zip path
         if zip_:
+            print(f'Packing {zip_}...')
             zipit(intermediate, zip_, Path(''))
 
     finally:

@@ -13,10 +13,11 @@ def __pack_loader__():
     import os
     import os.path
     import sys
+    from collections import OrderedDict
 
     # generate token
     global __pack_token__
-    __pack_token__ = str(binascii.hexlify(os.urandom(4)))
+    __pack_token__ = binascii.hexlify(os.urandom(4)).decode('utf-8')
 
     # modules will be injected here
     modules = {}
@@ -26,15 +27,16 @@ def __pack_loader__():
 
     # determine module base
     if __name__ == '__main__':
-        base = '{}_{}_{}'.format(__pack_module__, __pack_hash__, __pack_token__)
+        base = __pack_module__
     else:
-        base = '{}.{}_{}'.format(__name__, __pack_hash__, __pack_token__)
+        base = __name__
 
     # construct base module
-    sys.modules[base] = imp.new_module(base)
-    setattr(sys.modules[base], '__name__', base)
-    setattr(sys.modules[base], '__package__', base)
-    setattr(sys.modules[base], '__path__', [])
+    if __name__ == '__main__':
+        sys.modules[base] = imp.new_module(base)
+        setattr(sys.modules[base], '__name__', base)
+        setattr(sys.modules[base], '__package__', base)
+        setattr(sys.modules[base], '__path__', [])
 
     # utility: qualify name
     def qualify(name):
@@ -60,6 +62,8 @@ def __pack_loader__():
     # utility: __import__ wrapper
     def pack_import(name, globals=None, locals=None, fromlist=(), level=0):
 
+        print('pack_import name={}'.format(name))
+
         globals_ = globals if globals else {}
 
         # determine load name
@@ -78,6 +82,12 @@ def __pack_loader__():
         # remove prefix if given
         if '.'.join(load).startswith(base + '.'):
             load = load[len(base.split('.')):]
+
+        # replace prefix if necessary
+        if '.'.join(load) == __name__:
+            load = __pack_module__.split('.')
+        elif '.'.join(load).startswith(__name__ + '.'):
+            load = __pack_module__.split('.') + load[len(__name__.split('.')):]
 
         # return this module
         if __pack_mode__ == 'module' and '.'.join(load) == __pack_module__:
@@ -188,7 +198,7 @@ def __pack_loader__():
             level,
         )
 
-    globals()['__import__'] = pack_import_hook_root
+    setattr(sys.modules[__name__], '__import__', pack_import_hook_root)
 
     # support Python 3 loader system
     if sys.version_info >= (3, 0):
@@ -241,23 +251,34 @@ def __pack_loader__():
 
             def find_spec(self, fullname, path, target=None):
 
+                print('find_spec fullname={}'.format(fullname))
+
                 # convert path to a list
                 if not path or not hasattr(path, '__iter__'):
                     return None
 
                 path = list(path)
+                print(path)
+                print(__file__)
 
                 # handle only imports from the pack
-                from_this = path == list(__path__)
-                from_pack = (
-                        len(path) > 0 \
-                    and isinstance(path[0], str) \
-                    and path[0].startswith(resource_root) \
-                    and path[0].endswith('.py-{}-{}'.format(__pack_hash__, __pack_token__))
-                )
+                # from_this = (
+                #         len(path) > 0 \
+                #     and isinstance(path[0], str) \
+                #     and path[0] == __file__
+                # )
+                # from_pack = (
+                #         len(path) > 0 \
+                #     and isinstance(path[0], str) \
+                #     and path[0].startswith(resource_root) \
+                #     and path[0].endswith('.py-{}-{}'.format(__pack_hash__, __pack_token__))
+                # )
 
-                if not from_this and not from_pack:
-                    return None
+                # print(str(from_this))
+                # print(str(from_pack))
+
+                # if not from_this and not from_pack:
+                #     return None
 
                 # the base cannot be loaded
                 if fullname == base:
@@ -266,6 +287,14 @@ def __pack_loader__():
                 # remove prefix if given
                 if fullname.startswith(base + '.'):
                     load = fullname[len(base) + 1:]
+                else:
+                    load = fullname
+
+                # replace prefix if necessary
+                if load == __name__:
+                    load = __pack_module__
+                elif load.startswith(__name__ + '.'):
+                    load = __pack_module__ + load[len(__name__):]
 
                 # this module cannot be loaded
                 if __pack_mode__ == 'module' and load == __pack_module__:
