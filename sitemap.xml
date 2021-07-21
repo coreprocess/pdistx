@@ -1,15 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url>
-     <loc>https://3dninjas.github.io/pyscriptpacker/</loc>
-     <lastmod>2021-05-10</lastmod>
-     <changefreq>daily</changefreq>
-    </url><url>
-     <loc>https://3dninjas.github.io/pyscriptpacker/features/</loc>
-     <lastmod>2021-05-10</lastmod>
-     <changefreq>daily</changefreq>
-    </url><url>
-     <loc>https://3dninjas.github.io/pyscriptpacker/example/</loc>
-     <lastmod>2021-05-10</lastmod>
-     <changefreq>daily</changefreq>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://3dninjas.github.io/pdistx/</loc>
+         <lastmod>2021-07-21</lastmod>
+         <changefreq>daily</changefreq>
     </url>
 </urlset>
