@@ -127,15 +127,27 @@ def perform(
         with open(Path(__file__).parent.joinpath('template.py'), 'r') as file:
             code = file.readlines()
 
+        injected_mode = 0
+        injected_name = 0
+        injected_hash = 0
+        injected_modules = 0
+
         for i in range(len(code)):
             if '    pack_mode = \'\'\n' == code[i]:
                 code[i] = '    pack_mode = ' + repr(mode) + '\n'
+                injected_mode += 1
             elif '    pack_name = \'\'\n' == code[i]:
                 code[i] = '    pack_name = ' + repr(source.name) + '\n'
+                injected_name += 1
             elif '    pack_hash = \'\'\n' == code[i]:
                 code[i] = '    pack_hash = ' + repr(hash_) + '\n'
-            elif '    pack_modules = {}\n' == code[i]:
+                injected_hash += 1
+            elif '    pack_modules = OrderedDict()\n' == code[i]:
                 code[i] = '    pack_modules = ' + modules + '\n'
+                injected_modules += 1
+
+        if injected_mode != 1 or injected_name != 1 or injected_hash != 1 or injected_modules != 1:
+            raise RuntimeError('inconsistent code template')
 
         code = ''.join(code) + '\n\n' + bootstrap
 
