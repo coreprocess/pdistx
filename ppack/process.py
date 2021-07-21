@@ -8,6 +8,7 @@ from typing import Dict, List
 from pdist.utils.path import fnmatch_any, rmpath
 from pdist.utils.zip import zipit
 
+from .checks import has_absolute_import_of_module, has_relative_import
 from .transform import file_to_resource_transform
 
 
@@ -93,9 +94,21 @@ def perform(
 
                     # load module code
                     with open(source_file) as source_handle:
+                        # read and transform code
                         code = source_handle.read()
+
                         if resources:
                             code = file_to_resource_transform(code)
+
+                        # check code for invalid imports
+                        if name == '__main__' and has_relative_import(code):
+                            raise ValueError(f'{source_file} contains a relative import, which is forbidden')
+
+                        if name != '__main__' and has_absolute_import_of_module(code, source.name):
+                            raise ValueError(
+                                f'{source_file} contains an absolute import of {source.name}, which is forbidden')
+
+                        # assign to module dictionay
                         modules[name] = (code, is_package)
 
                 # copy resource files
