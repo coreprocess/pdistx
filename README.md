@@ -1,64 +1,112 @@
-Pyscriptpacker
----
+# Python Distribution Tools
 
-_A better way for distributing your Python packages._
+## Python Vendoring Tool
 
-<p align="left">
-    <a href="https://github.com/3dninjas/pyscriptpacker/actions/workflows/unittests.yaml" target="_blank">
-        <img src="https://github.com/3dninjas/pyscriptpacker/actions/workflows/unittests.yaml/badge.svg" alt="Test">
-    </a>
-    <a href="https://pypi.org/project/pyscriptpacker/" target="_blank">
-        <img src="https://img.shields.io/pypi/v/pyscriptpacker?color=%2334D058&label=pypi%20package" alt="Package version">
-    </a>
-</p>
+Vendor libraries in a subpackage, which can be placed anywhere in a project.
 
----
+```
+$ pvendor --help
+$ pdist vendor --help
 
-**Documentation**: <a href="https://3dninjas.github.io/pyscriptpacker/" target="_blank">https://3dninjas.github.io/pyscriptpacker/</a>
+usage: pvendor [-h] [-r requirements] [-s source] [-p pip] [-k keep] [-z zip] target
 
-**Source Code**: <a href="https://github.com/3dninjas/pyscriptpacker" target="_blank">https://github.com/3dninjas/pyscriptpacker</a>
+positional arguments:
+  target           target folder (will be cleared, except for the ones to be kept)
 
----
+optional arguments:
+  -h, --help       show this help message and exit
+  -r requirements  install packages from requirements.txt
+  -s source        copy modules from source folder
+  -p pip           pip command (defaults to pip)
+  -k keep          files or folders to be kept in the target folder (defaults to requirements.txt and .gitignore)
+  -z zip           zip file path (target becomes relative path within zip file)
+```
 
-Pyscriptpacker helps converting your Python packages into a single file that makes the distribution of your projects much more simple.
-The key features are:
+## Python Variant Exporter
 
-- **Single file distribution:** The final result will be a single file module which allows the file can be easily placed into any other projects.
-- **Extending libraries:** Pyscriptpacker support packing external modules to your project as long as it is a Python library and can be installed via pypi (or you can provide the path to the library manually).
-- **Zip output:** The user can use Pyscriptpacker for zipping the output and other files/folder together with custom path support for a desired structure.
-- **Python 2 & 3:** Pyscriptpacker is compatible with both python 2 & 3, so it can support with projects with both versions.
+Export a specific variant from a codebase.
 
-## Quick start
+```
+$ pvariant --help
+$ pdist variant --help
 
-``` console
-$ pip install pyscriptpacker
-$ python -m pyscriptpacker --help
+usage: pvariant [-h] [-d name[:type]=value] [-f filter] [-z zip] source target
 
-Usage: python -m pyscriptpacker [options] module1,module2,.. path1,path2,.. output
+positional arguments:
+  source                source path
+  target                target path (will be cleared)
 
- Convert Python packages into a single file that makes the distribution of
-your projects simpler and provides options for compressing the source code and
-zipping the output.
-
-Options:
-  --version             show program's version number and exit
+optional arguments:
   -h, --help            show this help message and exit
-  -c, --compress        compress the sources
-  -i, --minify          minify the sources (unstable, not recommended)
-  -m main_file, --main=main_file
-                        append main script to the bundle
-  -z zip_file, --zip=zip_file
-                        zip the bundle script
-  -r path,..., --resources=path,...
-                        add resource files and folders to the zip file, using
-                        their basename or a custom path annotated with a
-                        colon, e.g. -z ./res/logo.png:logo.png
-  -k package,..., --packages=package,...
-                        install additional packages to a temporary virtual
-                        python environment, can be used for searching and
-                        packing.
-  -p python_path, --python=python_path
-                        specify the python path used for the parameter of
-                        virtualenv tool. If this argument is not provided,
-                        pyscriptpacker will try getting the default path.
+  -d name[:type]=value  define variables to be replaced, e.g. -d __VARIANT__=PRO -d __LICENSE_CHECK__:bool=True
+  -f filter             defines files and folders to be filtered out (glob pattern)
+  -z zip                zip file path (target becomes relative path within zip file)
+```
+
+## Python Packer Tool
+
+Pack a single package into a single Python file.
+
+```
+$ ppack --help
+$ pdist pack --help
+
+usage: ppack [-h] [-r] [-m] [-f filter] [-z zip] source target
+
+positional arguments:
+  source      source package path
+  target      target python (will be cleared)
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -r          create a resources folder with all non-python files (it will be named <target>_resources and be cleared)
+  -m          use __main__.py of the package as bootstrap code (default is to use the root __init__.py of the package)
+  -f filter   defines files and folders to be filtered out (glob pattern)
+  -z zip      zip file path (target becomes relative path within zip file)
+```
+
+## Examples
+
+### Blender Addon
+
+```sh
+# vendor packages
+pvendor examples/blender_addon/vendor
+
+# generate PRO as zip
+pvariant \
+    -d __VARIANT__=PRO                 \
+    -f '**/free.bip'                   \
+    -z $HOME/Desktop/blender_addon.zip \
+    examples/blender_addon             \
+    blender_addon
+
+# generate FREE as folder
+pvariant \
+    -d __VARIANT__=FREE    \
+    -f '**/pro.bip'        \
+    examples/blender_addon \
+    $HOME/.config/blender/2.93/scripts/addons/blender_addon
+
+# pack addon as single file
+ppack \
+    -r \
+    -f 'vendor/requirements.txt' -f 'vendor/.gitignore' \
+    examples/blender_addon \
+    $HOME/.config/blender/2.93/scripts/addons/blender_addon.py
+```
+
+### QT App
+
+```sh
+# vendor packages
+pvendor examples/qt_app/vendor
+
+# pack app as single file
+ppack \
+    -r \
+    -f 'vendor/requirements.txt' -f 'vendor/.gitignore' \
+    -m \
+    examples/qt_app \
+    $HOME/Desktop/qt_app.py
 ```
