@@ -139,6 +139,8 @@ def __pack_loader__():
         resource_path = gen_resource_path(name, is_package)
 
         # create module object
+        print('pack(__import__): loading {} as {}', name, qualified_name)
+
         module = sys.modules[qualified_name] = imp.new_module(qualified_name)
         setattr(module, '__pack_module__', __pack_module__)
         setattr(module, '__pack_hash__', __pack_hash__)
@@ -275,6 +277,8 @@ def __pack_loader__():
                     return None
 
                 # create spec
+                print('pack(importlib): loading {} as {}', load, fullname)
+
                 return importlib.util.spec_from_loader(
                     qualify(load),
                     loader=PackLoader(load, code, is_package),
