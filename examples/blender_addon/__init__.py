@@ -20,8 +20,8 @@ from .vendor.t3dn_bip import previews
 collection = None
 
 
-class T3DN_PT_pdist_panel(bpy.types.Panel):
-    bl_label = '3DN PDIST Getting Started'
+class T3DN_PT_pdistx_panel(bpy.types.Panel):
+    bl_label = '3DN PDISTX Getting Started'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = '3D Ninjas'
@@ -32,7 +32,7 @@ class T3DN_PT_pdist_panel(bpy.types.Panel):
 
         # Draw operator for PRO users
         if __VARIANT__ in ['DEV', 'PRO']:
-            layout.operator('t3dn.pdist_pro')
+            layout.operator('t3dn.pdistx_pro')
 
         # When drawing a preview, you'll need its icon_id.
         icon_id = collection['image'].icon_id
@@ -57,12 +57,12 @@ def register():
         collection.load('image', str(images.joinpath('free.bip')), 'IMAGE')
 
     # Register the panel so it shows up in the sidebar.
-    bpy.utils.register_class(T3DN_PT_pdist_panel)
+    bpy.utils.register_class(T3DN_PT_pdistx_panel)
 
 
 def unregister():
     # Unregister the panel to free resources and avoid errors.
-    bpy.utils.unregister_class(T3DN_PT_pdist_panel)
+    bpy.utils.unregister_class(T3DN_PT_pdistx_panel)
 
     # Discard all loaded previews and remove the collection.
     previews.remove(collection)

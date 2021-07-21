@@ -4,13 +4,13 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pdist",
+    name="disttool",
     author="3D Ninjas GmbH",
     author_email="niklas@3dninjas.io",
     description="A toolset for distributing Python projects in a convenient way.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/3dninjas/pdist",
+    url="https://github.com/3dninjas/python-disttool",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python",
@@ -22,7 +22,7 @@ setuptools.setup(
     install_requires=[],
     entry_points={
         "console_scripts": [
-            "pdist=pdist.__main__:main",
+            "pdistx=pdistx.__main__:main",
             "pvendor=pvendor.__main__:main",
             "pvariant=pvariant.__main__:main",
             "ppack=ppack.__main__:main",

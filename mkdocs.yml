@@ -1,12 +1,12 @@
 # Project information
 site_name: 3D Ninjas | Python Distribution Tools
-site_url: https://3dninjas.github.io/pdist/
+site_url: https://3dninjas.github.io/pdistx/
 site_author: 3D Ninjas GmbH
 site_description: Documentation for the Python Distribution Tools developed by the 3D Ninjas team.
 
 # Repository
-repo_name: 3dninjas/pdist
-repo_url: https://github.com/3dninjas/pdist
+repo_name: 3dninjas/pdistx
+repo_url: https://github.com/3dninjas/pdistx
 edit_uri: ""
 
 # Copyright

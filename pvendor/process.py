@@ -5,8 +5,8 @@ from subprocess import check_call
 from tempfile import mkdtemp
 from typing import List
 
-from pdist.utils.path import fnmatch_any, rmpath
-from pdist.utils.zip import zipit
+from pdistx.utils.path import fnmatch_any, rmpath
+from pdistx.utils.zip import zipit
 
 from .transform import import_transform
 

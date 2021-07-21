@@ -18,7 +18,7 @@ def main(argv: List[str] = sys.argv[1:]):
     elif tool == 'vendor':
         main_vendor(argv)
     else:
-        print('Usage: pdist pack|variant|vendor ...')
+        print('Usage: pdistx pack|variant|vendor --help')
         sys.exit(1)
 
 

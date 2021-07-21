@@ -6,7 +6,7 @@ Vendor libraries in a subpackage, which can be placed anywhere in a project.
 
 ```
 $ pvendor --help
-$ pdist vendor --help
+$ pdistx vendor --help
 
 usage: pvendor [-h] [-r requirements] [-s source] [-p pip] [-k keep] [-z zip] target
 
@@ -28,7 +28,7 @@ Export a specific variant from a codebase.
 
 ```
 $ pvariant --help
-$ pdist variant --help
+$ pdistx variant --help
 
 usage: pvariant [-h] [-d name[:type]=value] [-f filter] [-z zip] source target
 
@@ -49,7 +49,7 @@ Pack a single package into a single Python file.
 
 ```
 $ ppack --help
-$ pdist pack --help
+$ pdistx pack --help
 
 usage: ppack [-h] [-r] [-m] [-f filter] [-z zip] source target
 

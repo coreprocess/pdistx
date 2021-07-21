@@ -5,8 +5,8 @@ from shutil import copy
 from tempfile import mkdtemp
 from typing import Dict, List
 
-from pdist.utils.path import fnmatch_any, rmpath
-from pdist.utils.zip import zipit
+from pdistx.utils.path import fnmatch_any, rmpath
+from pdistx.utils.zip import zipit
 
 from .checks import has_absolute_import_of_module, has_relative_import
 from .transform import file_to_resource_transform
