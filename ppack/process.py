@@ -82,8 +82,7 @@ def perform(
                     # determine module name
                     is_package = file == '__init__.py'
 
-                    name = [source.name]
-                    name += list(package_folder.parts)
+                    name = list(package_folder.parts)
                     name += [file.split('.')[0]] if not is_package else []
 
                     name = '.'.join(name)
@@ -114,11 +113,11 @@ def perform(
 
         # determine bootstrap module
         mode = 'main'
-        bootstrap, _ = modules.get(f'{source.name}.__main__', (None, None))
+        bootstrap, _ = modules.get('__main__', (None, None))
 
         if bootstrap is None:
-            mode = 'module'
-            bootstrap, _ = modules[source.name]
+            mode = 'package'
+            bootstrap, _ = modules['']
 
         # generate hash
         modules = repr(modules)
@@ -129,14 +128,14 @@ def perform(
             code = file.readlines()
 
         for i in range(len(code)):
-            if '    modules = {}\n' == code[i]:
-                code[i] = '    modules = ' + modules + '\n'
-            elif '__pack_mode__ = \'\'\n' == code[i]:
-                code[i] = '__pack_mode__ = ' + repr(mode) + '\n'
-            elif '__pack_module__ = \'\'\n' == code[i]:
-                code[i] = '__pack_module__ = ' + repr(source.name) + '\n'
-            elif '__pack_hash__ = \'\'\n' == code[i]:
-                code[i] = '__pack_hash__ = ' + repr(hash_) + '\n'
+            if '    pack_mode = \'\'\n' == code[i]:
+                code[i] = '    pack_mode = ' + repr(mode) + '\n'
+            elif '    pack_name = \'\'\n' == code[i]:
+                code[i] = '    pack_name = ' + repr(source.name) + '\n'
+            elif '    pack_hash = \'\'\n' == code[i]:
+                code[i] = '    pack_hash = ' + repr(hash_) + '\n'
+            elif '    pack_modules = {}\n' == code[i]:
+                code[i] = '    pack_modules = ' + modules + '\n'
 
         code = ''.join(code) + '\n\n' + bootstrap
 
