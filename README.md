@@ -2,12 +2,20 @@
 
 ## Installation
 
+**Note:** the Python Distribution Tools require Python 3.9 or newer to run. But of course, the tools can translate code for older Python versions.
+
 ```sh
 # install via pip
 pip install pdistx
 
 # or run directly via pipx
 pipx run pdistx
+
+# here is how you can explicitely use Python 3.9 to install the pdistx
+python3.9 -m pip install pdistx
+
+# and here how you can make sure, pipx is running with Python 3.9
+python3.9 -m pip install pipx
 ```
 
 ## Python Vendoring Tool
