@@ -64,8 +64,6 @@ extra:
 # Page navigation
 nav:
   - Overview: index.md
-  - Features: features.md
-  - Example: example.md
 
 markdown_extensions:
   - admonition
