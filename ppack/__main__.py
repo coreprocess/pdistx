@@ -21,6 +21,13 @@ def main(argv: List[str] = sys.argv[1:]):
     )
 
     parser.add_argument(
+        '-m',
+        dest='main',
+        action='store_true',
+        help='use __main__.py of the package as bootstrap code (default is to use the root __init__.py of the package)',
+    )
+
+    parser.add_argument(
         '-f',
         dest='filter',
         metavar='filter',
@@ -55,6 +62,7 @@ def main(argv: List[str] = sys.argv[1:]):
             Path(args.target),
             [Path(path) for pattern in args.filter for path in glob(join(args.source, pattern), recursive=True)],
             args.resources,
+            args.main,
             Path(args.zip) if args.zip else None,
         )
     except Exception as ex:

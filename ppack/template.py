@@ -10,7 +10,6 @@ def __pack_loader__():
     # pack data will be injected here
     pack_mode = ''
     pack_name = ''
-    pack_hash = ''
     pack_modules = OrderedDict()
 
     # verify execution model
@@ -38,7 +37,7 @@ def __pack_loader__():
 
     # determine module base
     if pack_mode == 'main':
-        base = '{}_{}'.format(pack_name, pack_hash)
+        base = pack_name
     else:
         base = __name__
 

@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from hashlib import md5
 from os import makedirs, walk
 from pathlib import Path
 from shutil import copy
@@ -15,6 +14,7 @@ def perform(
     target: Path,
     filters: List[Path],
     resources: bool,
+    main: bool,
     zip_: Path,
 ):
     # ensure pre-conditions
@@ -103,7 +103,7 @@ def perform(
         # create all missing intermediate packages
         for name in list(modules.keys()):
             parts = name.split('.')
-            for i in range(1, len(parts)):
+            for i in range(0, len(parts)):
                 package = '.'.join(parts[0:i])
                 if package not in modules:
                     modules[package] = ('', True)
@@ -112,16 +112,15 @@ def perform(
         modules = OrderedDict(sorted(modules.items(), key=lambda i: i[0]))
 
         # determine bootstrap module
-        mode = 'main'
-        bootstrap, _ = modules.get('__main__', (None, None))
+        if main:
+            mode = 'main'
+            bootstrap, _ = modules.get('__main__', (None, None))
+        else:
+            mode = 'package'
+            bootstrap, _ = modules.get('', (None, None))
 
         if bootstrap is None:
-            mode = 'package'
-            bootstrap, _ = modules['']
-
-        # generate hash
-        modules = repr(modules)
-        hash_ = md5(modules.encode('utf-8')).hexdigest()
+            raise RuntimeError('bootstrap module is missing')
 
         # create packed file
         with open(Path(__file__).parent.joinpath('template.py'), 'r') as file:
@@ -129,7 +128,6 @@ def perform(
 
         injected_mode = 0
         injected_name = 0
-        injected_hash = 0
         injected_modules = 0
 
         for i in range(len(code)):
@@ -139,14 +137,11 @@ def perform(
             elif '    pack_name = \'\'\n' == code[i]:
                 code[i] = '    pack_name = ' + repr(source.name) + '\n'
                 injected_name += 1
-            elif '    pack_hash = \'\'\n' == code[i]:
-                code[i] = '    pack_hash = ' + repr(hash_) + '\n'
-                injected_hash += 1
             elif '    pack_modules = OrderedDict()\n' == code[i]:
-                code[i] = '    pack_modules = ' + modules + '\n'
+                code[i] = '    pack_modules = ' + repr(modules) + '\n'
                 injected_modules += 1
 
-        if injected_mode != 1 or injected_name != 1 or injected_hash != 1 or injected_modules != 1:
+        if injected_mode != 1 or injected_name != 1 or injected_modules != 1:
             raise RuntimeError('inconsistent code template')
 
         code = ''.join(code) + '\n\n' + bootstrap
