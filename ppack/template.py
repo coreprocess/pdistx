@@ -156,9 +156,18 @@ def __pack_loader__():
 
         setattr(module, '__import__', pack_import_hook)
 
-        # inject code
-        code = compile(code, resource_path, 'exec')
-        exec(code, module.__dict__)
+        # load module code
+        try:
+            code = compile(code, resource_path, 'exec')
+            exec(code, module.__dict__)
+
+        except:
+            # remove module in case load failed
+            del sys.modules[qualified_name]
+            
+        else:
+            # link to parent in case load succeeded
+            setattr(sys.modules[qualified_parent], local, module)
 
     # import hook for modules using __import__ the wrong way
     def pack_import_hook_root(name, globals=None, locals=None, fromlist=(), level=0):
