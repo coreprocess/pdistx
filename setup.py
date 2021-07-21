@@ -4,13 +4,13 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="disttool",
+    name="pdistx",
     author="3D Ninjas GmbH",
     author_email="niklas@3dninjas.io",
     description="A toolset for distributing Python projects in a convenient way.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/3dninjas/python-disttool",
+    url="https://github.com/3dninjas/pdistx",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python",
