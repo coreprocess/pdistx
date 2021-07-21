@@ -6,28 +6,28 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Documentation for Pyscriptpacker python package developed by 3dninjas team.">
+        <meta name="description" content="Documentation for the Python Distribution Tools developed by the 3D Ninjas team.">
       
       
       
         <meta name="author" content="3D Ninjas GmbH">
       
       
-        <link rel="canonical" href="https://3dninjas.github.io/pyscriptpacker/">
+        <link rel="canonical" href="https://3dninjas.github.io/pdistx/">
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.4">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.0">
     
     
       
-        <title>3dninjas | Pyscriptpacker</title>
+        <title>3D Ninjas | Python Distribution Tools</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.bde7dde4.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.fe914879.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ef6f36e2.min.css">
+        <link rel="stylesheet" href="assets/stylesheets/palette.ba0d045b.min.css">
         
       
     
@@ -44,6 +44,8 @@
     
     
       
+
+
     
     
   </head>
@@ -69,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#quick-start" class="md-skip">
+        <a href="#python-distribution-tools" class="md-skip">
           Skip to content
         </a>
       
@@ -80,7 +82,7 @@
     
       <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="3dninjas | Pyscriptpacker" class="md-header__button md-logo" aria-label="3dninjas | Pyscriptpacker" data-md-component="logo">
+    <a href="." title="3D Ninjas | Python Distribution Tools" class="md-header__button md-logo" aria-label="3D Ninjas | Python Distribution Tools" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
@@ -93,7 +95,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            3dninjas | Pyscriptpacker
+            3D Ninjas | Python Distribution Tools
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -110,7 +112,7 @@
         
           
           
-          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" type="radio" name="__palette" id="__palette_1">
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
           
             <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2m10-3a5 5 0 0 1 5 5 5 5 0 0 1-5 5H7a5 5 0 0 1-5-5 5 5 0 0 1 5-5h10M7 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3h10a3 3 0 0 0 3-3 3 3 0 0 0-3-3H7z"/></svg>
@@ -119,7 +121,7 @@
         
           
           
-          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="red" type="radio" name="__palette" id="__palette_2">
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="red"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
           
             <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3z"/></svg>
@@ -138,14 +140,20 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
       </label>
-      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
-      </button>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" data-md-scrollfix>
@@ -163,13 +171,13 @@
     
       <div class="md-header__source">
         
-<a href="https://github.com/3dninjas/pyscriptpacker" title="Go to repository" class="md-source" data-md-component="source">
+<a href="https://github.com/3dninjas/pdistx" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
   </div>
   <div class="md-source__repository">
-    3dninjas/pyscriptpacker
+    3dninjas/pdistx
   </div>
 </a>
       </div>
@@ -195,24 +203,24 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="3dninjas | Pyscriptpacker" class="md-nav__button md-logo" aria-label="3dninjas | Pyscriptpacker" data-md-component="logo">
+    <a href="." title="3D Ninjas | Python Distribution Tools" class="md-nav__button md-logo" aria-label="3D Ninjas | Python Distribution Tools" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
 
     </a>
-    3dninjas | Pyscriptpacker
+    3D Ninjas | Python Distribution Tools
   </label>
   
     <div class="md-nav__source">
       
-<a href="https://github.com/3dninjas/pyscriptpacker" title="Go to repository" class="md-source" data-md-component="source">
+<a href="https://github.com/3dninjas/pdistx" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
   </div>
   <div class="md-source__repository">
-    3dninjas/pyscriptpacker
+    3dninjas/pdistx
   </div>
 </a>
     </div>
@@ -233,6 +241,8 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           Overview
@@ -248,6 +258,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -256,16 +268,50 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    Quick start
+  <a href="#python-vendoring-tool" class="md-nav__link">
+    Python Vendoring Tool
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    License
+  <a href="#python-variant-exporter" class="md-nav__link">
+    Python Variant Exporter
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-packer-tool" class="md-nav__link">
+    Python Packer Tool
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#blender-addon" class="md-nav__link">
+    Blender Addon
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qt-app" class="md-nav__link">
+    QT App
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -273,36 +319,6 @@
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="features/" class="md-nav__link">
-        Features
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="example/" class="md-nav__link">
-        Example
-      </a>
     </li>
   
 
@@ -323,6 +339,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -331,16 +349,50 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    Quick start
+  <a href="#python-vendoring-tool" class="md-nav__link">
+    Python Vendoring Tool
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    License
+  <a href="#python-variant-exporter" class="md-nav__link">
+    Python Variant Exporter
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-packer-tool" class="md-nav__link">
+    Python Packer Tool
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#blender-addon" class="md-nav__link">
+    Blender Addon
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qt-app" class="md-nav__link">
+    QT App
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -357,112 +409,99 @@
               
                 
                 
-                  <h1>Overview</h1>
-                
-                <p align="center">
-    <em>A better way for distributing your Python packages.</em>
-</p>
-<p align="center">
-    <a href="https://github.com/3dninjas/pyscriptpacker/actions/workflows/unittests.yaml" target="_blank">
-        <img src="https://github.com/3dninjas/pyscriptpacker/actions/workflows/unittests.yaml/badge.svg" alt="Test">
-    </a>
-    <a href="https://pypi.org/project/pyscriptpacker/" target="_blank">
-        <img src="https://img.shields.io/pypi/v/pyscriptpacker?color=%2334D058&label=pypi%20package" alt="Package version">
-    </a>
-</p>
+                <h1 id="python-distribution-tools">Python Distribution Tools</h1>
+<h2 id="python-vendoring-tool">Python Vendoring Tool</h2>
+<p>Vendor libraries in a subpackage, which can be placed anywhere in a project.</p>
+<div class="highlight"><pre><span></span><code>$ pvendor --help
+$ pdistx vendor --help
 
-<hr />
-<p><strong>Documentation</strong>: <a href="https://3dninjas.github.io/pyscriptpacker/" target="_blank">https://3dninjas.github.io/pyscriptpacker/</a></p>
-<p><strong>Source Code</strong>: <a href="https://github.com/3dninjas/pyscriptpacker" target="_blank">https://github.com/3dninjas/pyscriptpacker</a></p>
-<hr />
-<p>Pyscriptpacker helps converting your Python packages into a single file that makes the distribution of your projects much more simple.
-The key features are:</p>
-<ul>
-<li><strong>Single file distribution:</strong> The final result will be a single file module which allows the file can be easily placed into any other projects.</li>
-<li><strong>Extending libraries:</strong> Pyscriptpacker support packing external modules to your project as long as it is a Python library and can be installed via pypi (or you can provide the path to the library manually).</li>
-<li><strong>Zip output:</strong> The user can use Pyscriptpacker for zipping the output and other files/folder together with custom path support for a desired structure.</li>
-<li><strong>Compressing &amp; minifying:</strong> Pyscriptpacker has an option which can be used to compress and minify all the sources to add a security layer for your code.</li>
-<li><strong>Python 2 &amp; 3:</strong> Pyscriptpacker is compatible with both python 2 &amp; 3, so it can support with projects with both versions.</li>
-</ul>
-<p>Please see <a href="/features">feature</a> for more information.</p>
-<h2 id="quick-start">Quick start</h2>
-<div class="highlight"><pre><span></span><code><span class="gp">$ </span>pip install pyscriptpacker
+usage: pvendor [-h] [-r requirements] [-s source] [-p pip] [-k keep] [-z zip] target
 
-<span class="gp">$ </span>pyscriptpacker --help
+positional arguments:
+  target           target folder (will be cleared, except for the ones to be kept)
 
-<span class="go">Usage:</span>
-<span class="go">    python -m pyscriptpacker [options] module1,module2,.. path1,path2,.. output</span>
+optional arguments:
+  -h, --help       show this help message and exit
+  -r requirements  install packages from requirements.txt
+  -s source        copy modules from source folder
+  -p pip           pip command (defaults to pip)
+  -k keep          files or folders to be kept in the target folder (defaults to requirements.txt and .gitignore)
+  -z zip           zip file path (target becomes relative path within zip file)
 </code></pre></div>
-<p>Pyscriptpacker also provides a number of command line arguments.</p>
-<dl>
-<dt><code>--version</code></dt>
-<dd>
-<blockquote>
-<p>Show the Pyscriptpacker's version and exit.</p>
-</blockquote>
-</dd>
-<dt><code>-h, --help</code></dt>
-<dd>
-<blockquote>
-<p>Show the Pyscriptpacker's help message and exit.</p>
-</blockquote>
-</dd>
-<dt><code>-c, --compress</code></dt>
-<dd>
-<blockquote>
-<p>Default: <code>false</code> - This option allow to compress the sources and the packed file.</p>
-</blockquote>
-</dd>
-<dt><code>-i, --minify</code></dt>
-<dd>
-<blockquote>
-<p>Default: <code>false</code> - Minify the source code using the <a href="https://github.com/liftoff/pyminifier">pyminifier</a> package.</p>
-</blockquote>
-</dd>
-<dt><code>-m main_file, --main=main_file</code></dt>
-<dd>
-<blockquote>
-<p>Default: <code>[]</code> - Append main file's script to the bundle, which allow it to be executed whenever we import the result file.</p>
-</blockquote>
-</dd>
-<dt><code>-z zip_file, --zip=zip_file</code></dt>
-<dd>
-<blockquote>
-<p>Default: <code>None</code> - Zip the result script into the input zip file.</p>
-</blockquote>
-</dd>
-<dt><code>-r path,..., --resources=path,...</code></dt>
-<dd>
-<blockquote>
-<p>Default: <code>[]</code> - Add resource files and folders to the zip file, using their basename or a custom path annotated with a colon, e.g. -z ./res/logo.png:logo.png</p>
-</blockquote>
-</dd>
-<dt><code>-k package,..., --packages=package,...</code></dt>
-<dd>
-<blockquote>
-<p>Default: <code>[]</code> - install additional packages to a temporary virtual python environment, can be used for searching and packing.</p>
-</blockquote>
-</dd>
-<dt><code>-p python_path, --python=python_path</code></dt>
-<dd>
-<blockquote>
-<p>Default: <code>sys.executable</code> - specify the python path used for the parameter of virtualenv tool. If this argument is not provided, pyscriptpacker will try getting the default path.</p>
-</blockquote>
-</dd>
-</dl>
-<h2 id="license">License</h2>
-<p><strong>GNU General Public License v3.0</strong></p>
-<p>Copyright (C) 2021 3D Ninjas GmbH</p>
-<p>This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with this program.  If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>.</p>
+<h2 id="python-variant-exporter">Python Variant Exporter</h2>
+<p>Export a specific variant from a codebase.</p>
+<div class="highlight"><pre><span></span><code>$ pvariant --help
+$ pdistx variant --help
+
+usage: pvariant [-h] [-d name[:type]=value] [-f filter] [-z zip] source target
+
+positional arguments:
+  source                source path
+  target                target path (will be cleared)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d name[:type]=value  define variables to be replaced, e.g. -d __VARIANT__=PRO -d __LICENSE_CHECK__:bool=True
+  -f filter             defines files and folders to be filtered out (glob pattern)
+  -z zip                zip file path (target becomes relative path within zip file)
+</code></pre></div>
+<h2 id="python-packer-tool">Python Packer Tool</h2>
+<p>Pack a single package into a single Python file.</p>
+<div class="highlight"><pre><span></span><code>$ ppack --help
+$ pdistx pack --help
+
+usage: ppack [-h] [-r] [-m] [-f filter] [-z zip] source target
+
+positional arguments:
+  source      source package path
+  target      target python (will be cleared)
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -r          create a resources folder with all non-python files (it will be named &lt;target&gt;_resources and be cleared)
+  -m          use __main__.py of the package as bootstrap code (default is to use the root __init__.py of the package)
+  -f filter   defines files and folders to be filtered out (glob pattern)
+  -z zip      zip file path (target becomes relative path within zip file)
+</code></pre></div>
+<h2 id="examples">Examples</h2>
+<h3 id="blender-addon">Blender Addon</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># vendor packages</span>
+pvendor examples/blender_addon/vendor
+
+<span class="c1"># generate PRO as zip</span>
+pvariant <span class="se">\</span>
+    -d <span class="nv">__VARIANT__</span><span class="o">=</span>PRO                 <span class="se">\</span>
+    -f <span class="s1">&#39;**/free.bip&#39;</span>                   <span class="se">\</span>
+    -z <span class="nv">$HOME</span>/Desktop/blender_addon.zip <span class="se">\</span>
+    examples/blender_addon             <span class="se">\</span>
+    blender_addon
+
+<span class="c1"># generate FREE as folder</span>
+pvariant <span class="se">\</span>
+    -d <span class="nv">__VARIANT__</span><span class="o">=</span>FREE    <span class="se">\</span>
+    -f <span class="s1">&#39;**/pro.bip&#39;</span>        <span class="se">\</span>
+    examples/blender_addon <span class="se">\</span>
+    <span class="nv">$HOME</span>/.config/blender/2.93/scripts/addons/blender_addon
+
+<span class="c1"># pack addon as single file</span>
+ppack <span class="se">\</span>
+    -r <span class="se">\</span>
+    -f <span class="s1">&#39;vendor/requirements.txt&#39;</span> -f <span class="s1">&#39;vendor/.gitignore&#39;</span> <span class="se">\</span>
+    examples/blender_addon <span class="se">\</span>
+    <span class="nv">$HOME</span>/.config/blender/2.93/scripts/addons/blender_addon.py
+</code></pre></div>
+<h3 id="qt-app">QT App</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># vendor packages</span>
+pvendor examples/qt_app/vendor
+
+<span class="c1"># pack app as single file</span>
+ppack <span class="se">\</span>
+    -r <span class="se">\</span>
+    -f <span class="s1">&#39;vendor/requirements.txt&#39;</span> -f <span class="s1">&#39;vendor/.gitignore&#39;</span> <span class="se">\</span>
+    -m <span class="se">\</span>
+    examples/qt_app <span class="se">\</span>
+    <span class="nv">$HOME</span>/Desktop/qt_app.py
+</code></pre></div>
                 
               
               
@@ -478,25 +517,6 @@ along with this program.  If not, see <a href="https://www.gnu.org/licenses/">ht
       
         
 <footer class="md-footer">
-  
-    <nav class="md-footer__inner md-grid" aria-label="Footer">
-      
-      
-        <a href="features/" class="md-footer__link md-footer__link--next" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              Features
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -552,10 +572,10 @@ along with this program.  If not, see <a href="https://www.gnu.org/licenses/">ht
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": ".", "features": ["search.suggest", "search.highlight", "navigation.tracking", "navigation.sections"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "assets/javascripts/workers/search.4fa0e4ee.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": ".", "features": ["search.suggest", "search.highlight", "navigation.tracking", "navigation.sections"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.53c85856.min.js", "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.1d3bfcf1.min.js"></script>
+      <script src="assets/javascripts/bundle.716f8af4.min.js"></script>
       
     
   </body>
