@@ -6,7 +6,8 @@ from pvariant.__main__ import main as main_variant
 from pvendor.__main__ import main as main_vendor
 
 
-def main(argv: List[str]):
+def main(argv: List[str] = sys.argv[1:]):
+
     tool = argv[0] if len(argv) > 0 else None
     argv = argv[1:]
 
@@ -22,4 +23,4 @@ def main(argv: List[str]):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

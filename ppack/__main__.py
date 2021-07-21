@@ -9,13 +9,13 @@ from typing import List
 from ppack.process import perform
 
 
-def main(argv: List[str]):
+def main(argv: List[str] = sys.argv[1:]):
+
     parser = argparse.ArgumentParser(prog='ppack')
 
     parser.add_argument(
         '-r',
         dest='resources',
-        metavar='resources',
         action='store_true',
         help='create a resources folder with all non-python files (it will be named <target>_resources)',
     )
@@ -66,4 +66,4 @@ def main(argv: List[str]):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

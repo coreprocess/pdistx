@@ -7,7 +7,8 @@ from typing import List
 from pvendor.process import perform
 
 
-def main(argv: List[str]):
+def main(argv: List[str] = sys.argv[1:]):
+
     parser = argparse.ArgumentParser(prog='pvendor')
 
     parser.add_argument(
@@ -78,4 +79,4 @@ def main(argv: List[str]):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

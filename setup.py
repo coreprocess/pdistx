@@ -22,9 +22,10 @@ setuptools.setup(
     install_requires=[],
     entry_points={
         "console_scripts": [
-            "pvendor=pvendor:main",
-            "pvariant=pvariant:main",
-            "ppack=ppack:main",
+            "pdist=pdist.__main__:main",
+            "pvendor=pvendor.__main__:main",
+            "pvariant=pvariant.__main__:main",
+            "ppack=ppack.__main__:main",
         ],
     },
 )
