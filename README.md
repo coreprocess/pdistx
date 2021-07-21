@@ -1,5 +1,15 @@
 # Python Distribution Tools
 
+## Installation
+
+```sh
+# install via pip
+pip install pdist
+
+# or run directly via pipx
+pipx run pdist
+```
+
 ## Python Vendoring Tool
 
 Vendor libraries in a subpackage, which can be placed anywhere in a project.
