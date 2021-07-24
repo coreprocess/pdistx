@@ -3,15 +3,13 @@ import ast
 
 class FileToResourceTransform(ast.NodeTransformer):
 
-    def __init__(self):
-        super().__init__()
-
+    # pylint: disable=pylint(invalid-name)
     def visit_Name(self, node: ast.Name):
+        node = self.generic_visit(node)
+
         if isinstance(node.ctx, ast.Load) and node.id == '__file__':
-            return ast.copy_location(
-                ast.Name('__resource__', ast.Load()),
-                node,
-            )
+            return ast.Name('__resource__', ast.Load())
+
         return node
 
 

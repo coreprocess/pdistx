@@ -12,12 +12,19 @@ class _ImportNameStringTransform(ast.NodeTransformer):
         self.string_rewrite_applied = False
         super().__init__()
 
+    # pylint: disable=pylint(invalid-name)
     def visit_Name(self, node: ast.Name):
+        node = self.generic_visit(node)
+
         if node.id in ['__package__', '__name__']:
             self.uses_package_or_name = True
+
         return node
 
+    # pylint: disable=pylint(invalid-name)
     def visit_Constant(self, node: ast.Constant):
+        node = self.generic_visit(node)
+
         if isinstance(node.value, str):
             if node.value.split('.')[0] in self._modules:
                 self.string_rewrite_applied = True
@@ -66,7 +73,10 @@ class ImportTransform(ast.NodeTransformer):
         self._modules = modules
         super().__init__()
 
+    # pylint: disable=pylint(invalid-name)
     def visit_Import(self, node: ast.Import):
+        node = self.generic_visit(node)
+
         nodes = []
         for name in node.names:
             # Keep "import abc.def" and "import abc.def as xyz" for non included modules
@@ -139,7 +149,10 @@ class ImportTransform(ast.NodeTransformer):
 
         return nodes
 
+    # pylint: disable=pylint(invalid-name)
     def visit_ImportFrom(self, node: ast.ImportFrom):
+        node = self.generic_visit(node)
+
         # Rewrite "from abc import def (as xyz)" to "from ..abc import def (as xyz)"
         if node.level == 0 and node.module.split('.')[0] in self._modules:
             return ast.ImportFrom(
@@ -150,7 +163,9 @@ class ImportTransform(ast.NodeTransformer):
 
         return node
 
+    # pylint: disable=pylint(invalid-name)
     def visit_Call(self, node: ast.Call):
+        node = self.generic_visit(node)
 
         if isinstance(node.func, ast.Name) and isinstance(node.func.ctx, ast.Load):
 
