@@ -6,6 +6,7 @@ from tempfile import mkdtemp
 from typing import Dict, List
 
 from pdistx.utils.path import fnmatch_any, rmpath
+from pdistx.utils.source import read_source
 from pdistx.utils.zip import zipit
 
 from .checks import has_absolute_import_of_module, has_relative_import
@@ -93,23 +94,21 @@ def perform(
                     name = '.'.join(name)
 
                     # load module code
-                    with open(source_file) as source_handle:
-                        # read and transform code
-                        code = source_handle.read()
+                    code = read_source(source_file)
 
-                        if resources:
-                            code = file_to_resource_transform(code)
+                    if resources:
+                        code = file_to_resource_transform(code)
 
-                        # check code for invalid imports
-                        if name == '__main__' and has_relative_import(code):
-                            raise ValueError(f'{source_file} contains a relative import, which is forbidden')
+                    # check code for invalid imports
+                    if name == '__main__' and has_relative_import(code):
+                        raise ValueError(f'{source_file} contains a relative import, which is forbidden')
 
-                        if name != '__main__' and has_absolute_import_of_module(code, source.name):
-                            raise ValueError(
-                                f'{source_file} contains an absolute import of {source.name}, which is forbidden')
+                    if name != '__main__' and has_absolute_import_of_module(code, source.name):
+                        raise ValueError(
+                            f'{source_file} contains an absolute import of {source.name}, which is forbidden')
 
-                        # assign to module dictionay
-                        modules[name] = (code, is_package)
+                    # assign to module dictionay
+                    modules[name] = (code, is_package)
 
                 # copy resource files
                 else:
@@ -143,31 +142,30 @@ def perform(
             raise RuntimeError('bootstrap module is missing')
 
         # create packed file
-        with open(Path(__file__).parent.joinpath('template.py'), 'r') as file:
-            code = file.readlines()
+        code = read_source(Path(__file__).parent.joinpath('template.py')).split('\n')
 
         injected_mode = 0
         injected_name = 0
         injected_modules = 0
 
         for i in range(len(code)):
-            if '    pack_mode = \'\'\n' == code[i]:
-                code[i] = '    pack_mode = ' + repr(mode) + '\n'
+            if '    pack_mode = \'\'' == code[i]:
+                code[i] = '    pack_mode = ' + repr(mode)
                 injected_mode += 1
-            elif '    pack_name = \'\'\n' == code[i]:
-                code[i] = '    pack_name = ' + repr(source.name) + '\n'
+            elif '    pack_name = \'\'' == code[i]:
+                code[i] = '    pack_name = ' + repr(source.name)
                 injected_name += 1
-            elif '    pack_modules = OrderedDict()\n' == code[i]:
-                code[i] = '    pack_modules = ' + repr(modules) + '\n'
+            elif '    pack_modules = OrderedDict()' == code[i]:
+                code[i] = '    pack_modules = ' + repr(modules)
                 injected_modules += 1
 
         if injected_mode != 1 or injected_name != 1 or injected_modules != 1:
             raise RuntimeError('inconsistent code template')
 
-        code = ''.join(code) + '\n\n' + bootstrap
+        code = '\n'.join(code) + '\n\n' + bootstrap
 
         print(f'Writing {packed}...')
-        with open(packed, 'w') as file:
+        with open(packed, 'w', encoding='utf-8') as file:
             file.write(code)
 
         # zip intermediate path to zip path

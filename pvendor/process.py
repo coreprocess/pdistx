@@ -143,7 +143,7 @@ def perform(
                 import_transform(source, intermediate.joinpath(name + '.py'), 1, list(modules.keys()))
 
         # create empty init file in target folder
-        with open(intermediate.joinpath('__init__.py'), 'w'):
+        with open(intermediate.joinpath('__init__.py'), 'w', encoding='utf-8'):
             pass
 
         # zip temporary target path to actual target path
