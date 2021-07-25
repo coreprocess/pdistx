@@ -6,7 +6,7 @@ from pathlib import Path
 from traceback import print_tb
 from typing import List
 
-from .process import perform
+from pvariant.process import perform
 
 
 def main(argv: List[str] = sys.argv[1:]):
