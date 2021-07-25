@@ -1,5 +1,6 @@
-from pathlib import Path
+import ast
 import re
+from pathlib import Path
 
 
 def detect_source_encoding(path: Path):
@@ -28,27 +29,22 @@ def read_source(path: Path):
     # detect encoding
     encoding = detect_source_encoding(path)
 
-    # read all lines with proper encoding
+    # read code with proper encoding
     with open(path, 'r', encoding=encoding) as file:
-        lines = file.read().split('\n')
+        return file.read()
 
-    # change encoding marker to utf-8 (see PEP 0263)
-    utf8_marker = '# coding: utf-8'
-    changed = False
 
-    for i in range(0, min(2, len(lines))):
-        if re.match(r'^[ \t\f]*#.*?coding[:=]', lines[i]):
-            if not changed:
-                lines[i] = lines[i][0:lines[i].find('#')] + utf8_marker
-                changed = True
-            else:
-                lines[i] = ''
+def write_source(path: Path, code: str):
 
-    if not changed:
-        if lines[0].startswith('#!'):
-            lines.insert(1, utf8_marker)
-        else:
-            lines.insert(0, utf8_marker)
+    # remove all comments including encoding marker and shebang
+    code = ast.unparse(ast.parse(code))
 
-    # join lines and done
-    return '\n'.join(lines)
+    # prepend utf-8 encoding and final newline
+    code = '# coding: utf-8\n' + code
+
+    if not code.endswith('\n'):
+        code += '\n'
+
+    # write code as utf-8
+    with open(path, 'w', encoding='utf-8') as file:
+        file.write(code)

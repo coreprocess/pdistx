@@ -6,6 +6,7 @@ from tempfile import mkdtemp
 from typing import List
 
 from pdistx.utils.path import fnmatch_any, rmpath
+from pdistx.utils.source import write_source
 from pdistx.utils.zip import zipit
 
 from .transform import import_transform
@@ -143,8 +144,7 @@ def perform(
                 import_transform(source, intermediate.joinpath(name + '.py'), 1, list(modules.keys()))
 
         # create empty init file in target folder
-        with open(intermediate.joinpath('__init__.py'), 'w', encoding='utf-8'):
-            pass
+        write_source(intermediate.joinpath('__init__.py'), '')
 
         # zip temporary target path to actual target path
         if zip_:

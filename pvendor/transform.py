@@ -2,7 +2,7 @@ import ast
 from pathlib import Path
 from typing import List
 
-from pdistx.utils.source import read_source
+from pdistx.utils.source import read_source, write_source
 
 
 class _ImportNameStringTransform(ast.NodeTransformer):
@@ -253,5 +253,4 @@ def import_transform(source_path: Path, target_path: Path, level: int, modules: 
     target = ast.unparse(tree)
 
     # write file
-    with open(target_path, 'w', encoding='utf-8') as tf:
-        tf.write(target)
+    write_source(target_path, target)

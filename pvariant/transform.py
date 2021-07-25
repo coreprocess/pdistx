@@ -2,7 +2,7 @@ import ast
 from functools import reduce
 from pathlib import Path
 
-from pdistx.utils.source import read_source
+from pdistx.utils.source import read_source, write_source
 
 
 class VariantTransform(ast.NodeTransformer):
@@ -128,5 +128,4 @@ def variant_transform(source_path: Path, target_path: Path, definitions: dict):
     target = ast.unparse(tree)
 
     # write file
-    with open(target_path, 'w', encoding='utf-8') as tf:
-        tf.write(target)
+    write_source(target_path, target)

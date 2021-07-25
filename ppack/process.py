@@ -6,7 +6,7 @@ from tempfile import mkdtemp
 from typing import Dict, List
 
 from pdistx.utils.path import fnmatch_any, rmpath
-from pdistx.utils.source import read_source
+from pdistx.utils.source import read_source, write_source
 from pdistx.utils.zip import zipit
 
 from .checks import has_absolute_import_of_module, has_relative_import
@@ -165,8 +165,7 @@ def perform(
         code = '\n'.join(code) + '\n\n' + bootstrap
 
         print(f'Writing {packed}...')
-        with open(packed, 'w', encoding='utf-8') as file:
-            file.write(code)
+        write_source(packed, code)
 
         # zip intermediate path to zip path
         if zip_:
