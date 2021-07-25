@@ -2,7 +2,8 @@ import sys
 
 # avoid having the cwd in the path
 # see https://docs.python.org/3/tutorial/modules.html#the-module-search-path
-sys.path.remove('')
+if '' in sys.path:
+    sys.path.remove('')
 
 import argparse
 from pathlib import Path
