@@ -268,6 +268,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recommended-use-pipx" class="md-nav__link">
+    Recommended: Use pipx
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alternative-install-pdistx-and-use-it-directly" class="md-nav__link">
+    Alternative: Install pdistx and use it directly
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#python-vendoring-tool" class="md-nav__link">
     Python Vendoring Tool
   </a>
@@ -349,6 +376,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recommended-use-pipx" class="md-nav__link">
+    Recommended: Use pipx
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alternative-install-pdistx-and-use-it-directly" class="md-nav__link">
+    Alternative: Install pdistx and use it directly
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#python-vendoring-tool" class="md-nav__link">
     Python Vendoring Tool
   </a>
@@ -410,6 +464,46 @@
                 
                 
                 <h1 id="python-distribution-tools">Python Distribution Tools</h1>
+<h2 id="installation">Installation</h2>
+<p><strong>Note:</strong> the Python Distribution Tools require Python 3.9 or newer to run. But of course, the tools can translate code for older Python versions.</p>
+<h3 id="recommended-use-pipx">Recommended: Use <code>pipx</code></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># find your Python 3.9 binary and use that one for the following commands</span>
+python --version
+python3 --version
+python3.9 --version
+
+<span class="c1"># install pipx to be able to run pypi packages directly</span>
+python -m pip install pipx
+
+<span class="c1"># run pdistx</span>
+pipx run pdistx vendor --help
+pipx run pdistx variant --help
+pipx run pdistx pack --help
+
+<span class="c1"># in case pipx is not in the path, you can run it as module</span>
+python -m pipx run pdistx vendor --help
+python -m pipx run pdistx variant --help
+python -m pipx run pdistx pack --help
+</code></pre></div>
+<h3 id="alternative-install-pdistx-and-use-it-directly">Alternative: Install <code>pdistx</code> and use it directly</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># find your Python 3.9 binary and use that one for the following commands</span>
+python --version
+python3 --version
+python3.9 --version
+
+<span class="c1"># install pdistx</span>
+python -m pip install pdistx
+
+<span class="c1"># run pdistx</span>
+pvendor --help
+pvariant --help
+ppack --help
+
+<span class="c1"># in case pdistx is not in the path, you can run it as module</span>
+python -m pvendor --help
+python -m pvariant --help
+python -m ppack --help
+</code></pre></div>
 <h2 id="python-vendoring-tool">Python Vendoring Tool</h2>
 <p>Vendor libraries in a subpackage, which can be placed anywhere in a project.</p>
 <div class="highlight"><pre><span></span><code>$ pvendor --help
@@ -446,7 +540,7 @@ optional arguments:
   -z zip                zip file path (target becomes relative path within zip file)
 </code></pre></div>
 <h2 id="python-packer-tool">Python Packer Tool</h2>
-<p>Pack a single package into a single Python file.</p>
+<p>Pack a Python package into a single Python file.</p>
 <div class="highlight"><pre><span></span><code>$ ppack --help
 $ pdistx pack --help
 
