@@ -32,10 +32,23 @@ def read_source(path: Path):
     with open(path, 'r', encoding=encoding) as file:
         lines = file.read().split('\n')
 
-    # remove encoding markers (see PEP 0263)
+    # change encoding marker to utf-8 (see PEP 0263)
+    utf8_marker = '# coding: utf-8'
+    changed = False
+
     for i in range(0, min(2, len(lines))):
         if re.match(r'^[ \t\f]*#.*?coding[:=]', lines[i]):
-            lines[i] = ''
+            if not changed:
+                lines[i] = lines[i][0:lines[i].find('#')] + utf8_marker
+                changed = True
+            else:
+                lines[i] = ''
+
+    if not changed:
+        if lines[0].startswith('#!'):
+            lines.insert(1, utf8_marker)
+        else:
+            lines.insert(0, utf8_marker)
 
     # join lines and done
     return '\n'.join(lines)
