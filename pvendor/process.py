@@ -84,7 +84,7 @@ def perform(
                 path = source.joinpath(entry)
 
                 if path.is_dir():
-                    if fnmatch_any(entry, ['*.dist-info', 'bin', '__pycache__', '.git']):
+                    if fnmatch_any(entry, ['*.dist-info', '*.egg-info', 'bin', '__pycache__', '.git']):
                         continue
                     name = entry
 
