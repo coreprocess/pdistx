@@ -1,5 +1,53 @@
 # Python Distribution Tools
 
+## Installation
+
+**Note:** the Python Distribution Tools require Python 3.9 or newer to run. But of course, the tools can translate code for older Python versions.
+
+### Recommended: Use `pipx`
+
+```sh
+# find your Python 3.9 binary and use that one for the following commands
+python --version
+python3 --version
+python3.9 --version
+
+# install pipx to be able to run pypi packages directly
+python -m pip install pipx
+
+# run pdistx
+pipx run pdistx vendor --help
+pipx run pdistx variant --help
+pipx run pdistx pack --help
+
+# in case pipx is not in the path, you can run it as module
+python -m pipx run pdistx vendor --help
+python -m pipx run pdistx variant --help
+python -m pipx run pdistx pack --help
+```
+
+### Alternative: Install `pdistx` and use it directly
+
+```sh
+# find your Python 3.9 binary and use that one for the following commands
+python --version
+python3 --version
+python3.9 --version
+
+# install pdistx
+python -m pip install pdistx
+
+# run pdistx
+pvendor --help
+pvariant --help
+ppack --help
+
+# in case pdistx is not in the path, you can run it as module
+python -m pvendor --help
+python -m pvariant --help
+python -m ppack --help
+```
+
 ## Python Vendoring Tool
 
 Vendor libraries in a subpackage, which can be placed anywhere in a project.
@@ -45,7 +93,7 @@ optional arguments:
 
 ## Python Packer Tool
 
-Pack a single package into a single Python file.
+Pack a Python package into a single Python file.
 
 ```
 $ ppack --help

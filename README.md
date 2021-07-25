@@ -93,7 +93,7 @@ optional arguments:
 
 ## Python Packer Tool
 
-Pack a single package into a single Python file.
+Pack a Python package into a single Python file.
 
 ```
 $ ppack --help
