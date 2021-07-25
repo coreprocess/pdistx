@@ -31,12 +31,17 @@ def read_source(path: Path):
 
     # read code with proper encoding
     with open(path, 'r', encoding=encoding) as file:
-        return file.read()
+        code = file.read()
+
+    # remove all comments including encoding marker and shebang
+    # NOTE: purposely done on read and write to cover all cases of pack/vendor/variant
+    return ast.unparse(ast.parse(code))
 
 
 def write_source(path: Path, code: str):
 
     # remove all comments including encoding marker and shebang
+    # NOTE: purposely done on read and write to cover all cases of pack/vendor/variant
     code = ast.unparse(ast.parse(code))
 
     # prepend utf-8 encoding and final newline
