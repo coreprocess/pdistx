@@ -51,7 +51,10 @@ def perform(
 
             # install packages into temp folder
             print(f'Installing {requirement} to {install_folder}...')
-            check_call([pip, 'install', '--upgrade', '--requirement', requirement, '--target', str(install_folder)])
+            check_call([
+                pip, 'install', '--upgrade', '--no-dependencies', '--requirement', requirement, '--target',
+                str(install_folder)
+            ])
 
         # clean target folder
         if zip_:
