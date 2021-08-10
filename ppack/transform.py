@@ -1,5 +1,7 @@
 import ast
 
+from pdistx.utils.source import ast_parse, ast_unparse
+
 
 class FileToResourceTransform(ast.NodeTransformer):
 
@@ -14,7 +16,7 @@ class FileToResourceTransform(ast.NodeTransformer):
 
 
 def file_to_resource_transform(source: str):
-    tree = ast.parse(source, type_comments=True)
+    tree = ast_parse(source)
     tree = FileToResourceTransform().visit(tree)
     tree = ast.fix_missing_locations(tree)
-    return ast.unparse(tree)
+    return ast_unparse(tree)

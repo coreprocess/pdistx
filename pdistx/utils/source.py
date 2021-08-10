@@ -3,6 +3,17 @@ import re
 from pathlib import Path
 
 
+def ast_parse(code: str):
+    try:
+        return ast.parse(code, type_comments=True)
+    except:
+        return ast.parse(code, type_comments=True, feature_version=(3, 4))
+
+
+def ast_unparse(node):
+    return ast.unparse(node)
+
+
 def detect_source_encoding(path: Path):
     # according to PEP 0263
     # https://www.python.org/dev/peps/pep-0263/
@@ -35,14 +46,14 @@ def read_source(path: Path):
 
     # remove all comments including encoding marker and shebang
     # NOTE: purposely done on read and write to cover all cases of pack/vendor/variant
-    return ast.unparse(ast.parse(code))
+    return ast_unparse(ast_parse(code))
 
 
 def write_source(path: Path, code: str):
 
     # remove all comments including encoding marker and shebang
     # NOTE: purposely done on read and write to cover all cases of pack/vendor/variant
-    code = ast.unparse(ast.parse(code))
+    code = ast_unparse(ast_parse(code))
 
     # prepend utf-8 encoding and final newline
     code = '# coding: utf-8\n' + code

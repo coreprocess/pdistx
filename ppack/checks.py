@@ -1,5 +1,7 @@
 import ast
 
+from pdistx.utils.source import ast_parse
+
 
 class _HasAbsoluteImportOfModuleCheck(ast.NodeVisitor):
 
@@ -27,7 +29,7 @@ class _HasAbsoluteImportOfModuleCheck(ast.NodeVisitor):
 
 def has_absolute_import_of_module(source, module):
     visitor = _HasAbsoluteImportOfModuleCheck(module)
-    visitor.visit(ast.parse(source, type_comments=True))
+    visitor.visit(ast_parse(source))
     return visitor.has_absolute_import_of_module
 
 
@@ -47,5 +49,5 @@ class _HasRelativeImportCheck(ast.NodeVisitor):
 
 def has_relative_import(source):
     visitor = _HasRelativeImportCheck()
-    visitor.visit(ast.parse(source, type_comments=True))
+    visitor.visit(ast_parse(source))
     return visitor.has_relative_import
